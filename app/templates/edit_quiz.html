@@ -1,0 +1,496 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Edit Quiz: {{ quiz.title }}</h1>
+
+<form action="{{ url_for('teacher.edit_quiz', quiz_id=quiz.id) }}" method="POST">
+    <div class="card">
+        <h2>Quiz Details</h2>
+        <div class="form-group">
+            <label for="title">Quiz Title</label>
+            <input type="text" id="title" name="title" value="{{ quiz.title }}" required>
+        </div>
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" name="description" rows="3">{{ quiz.description }}</textarea>
+        </div>
+        <div class="form-group">
+            <label for="duration">Total Duration (minutes) (Optional, for reference)</label>
+            <input type="number" id="duration" name="duration" value="{{ quiz.duration_minutes }}" min="1">
+        </div>
+        <div class="form-group">
+            <label for="time_per_question">Time per Question (seconds)</label>
+            <input type="number" id="time_per_question" name="time_per_question" value="{{ quiz.time_per_question }}"
+                min="5" required>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-group">
+                <label for="start_time">Available From (Optional)</label>
+                <input type="datetime-local" id="start_time" name="start_time"
+                    value="{{ quiz.start_time.strftime('%Y-%m-%dT%H:%M') if quiz.start_time else '' }}">
+            </div>
+            <div class="form-group">
+                <label for="end_time">Available Until (Optional)</label>
+                <input type="datetime-local" id="end_time" name="end_time"
+                    value="{{ quiz.end_time.strftime('%Y-%m-%dT%H:%M') if quiz.end_time else '' }}">
+            </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 1rem;">
+            <label for="recurrence_pattern">Recurrence Pattern</label>
+            <select id="recurrence_pattern" name="recurrence_pattern"
+                style="width: 100%; border: 1px solid var(--border-color); border-radius: 8px; padding: 0.75rem; background: var(--input-bg); color: var(--text-color);">
+                <option value="none" {% if quiz.recurrence_pattern=='none' %}selected{% endif %}>None (One-time)
+                </option>
+                <option value="daily" {% if quiz.recurrence_pattern=='daily' %}selected{% endif %}>Daily</option>
+                <option value="weekly" {% if quiz.recurrence_pattern=='weekly' %}selected{% endif %}>Weekly</option>
+                <option value="monthly" {% if quiz.recurrence_pattern=='monthly' %}selected{% endif %}>Monthly</option>
+            </select>
+        </div>
+
+        <div style="display: flex; gap: 2rem; margin-top: 1rem;">
+            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                <input type="checkbox" name="randomize_questions" value="true" {% if quiz.randomize_questions
+                    %}checked{% endif %} style="width: auto;">
+                <span>Randomize Question Order</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                <input type="checkbox" name="show_results" value="true" {% if quiz.show_results %}checked{% endif %}
+                    style="width: auto;">
+                <span>Show Results to Student Immediately</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                <input type="checkbox" name="show_leaderboard" value="true" {% if quiz.show_leaderboard %}checked{%
+                    endif %} style="width: auto;">
+                <span>Enable Global Leaderboard</span>
+            </label>
+        </div>
+    </div>
+
+    <div id="questions-container">
+        <!-- Existing Questions -->
+        {% for question in quiz.questions %}
+        {% set question_loop = loop %}
+        <div class="card question-block" id="question-{{ question_loop.index }}"
+            style="border: 1px solid var(--border-color); box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); padding: 1.5rem; margin-bottom: 2rem; border-radius: 12px;">
+            <input type="hidden" name="questions[{{ question_loop.index }}][id]" value="{{ question.id }}">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+                <h3 style="margin: 0; display: flex; align-items: center; gap: 0.5rem; color: var(--text-color);">
+                    <i class="fas fa-question-circle" style="color: var(--primary);"></i> Question {{
+                    question_loop.index }}
+                </h3>
+                <button type="button" class="btn"
+                    style="padding: 0.5rem 1rem; color: var(--error); background: rgba(239, 68, 68, 0.1); border-radius: 6px; font-weight: 500; font-size: 0.85rem; display: flex; align-items: center; gap: 0.5rem; transition: all 0.2s;"
+                    onclick="removeQuestion('{{ question_loop.index }}')"
+                    onmouseover="this.style.background='var(--error)'; this.style.color='white';"
+                    onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'; this.style.color='var(--error)';">
+                    <i class="fas fa-trash-alt"></i> Remove
+                </button>
+            </div>
+
+            <!-- Type Selection -->
+            <div style="margin-bottom: 1.5rem;">
+                <label
+                    style="font-weight: 600; color: var(--text-color); margin-bottom: 0.5rem; display: block;">Question
+                    Type</label>
+                <div style="position: relative;">
+                    <i class="fas fa-list-ul"
+                        style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+                    <select name="questions[{{ question_loop.index }}][type]"
+                        onchange="handleTypeChange(this, '{{ question_loop.index }}')" class="form-control"
+                        style="padding-left: 2.5rem; appearance: auto; font-size: 1rem;">
+                        <option value="single" {% if question.question_type=='single' %}selected{% endif %}>Single
+                            Choice</option>
+                        <option value="multiple" {% if question.question_type=='multiple' %}selected{% endif %}>Multiple
+                            Choice</option>
+                        <option value="true_false" {% if question.question_type=='true_false' %}selected{% endif %}>True
+                            / False</option>
+                        <option value="text" {% if question.question_type=='text' %}selected{% endif %}>Short Text
+                        </option>
+                        <option value="matching" {% if question.question_type=='matching' %}selected{% endif %}>Matching
+                            Pairs</option>
+                        <option value="ordering" {% if question.question_type=='ordering' %}selected{% endif %}>Ordering
+                            Sequence</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Question Text Box -->
+            <div style="margin-bottom: 1.5rem;">
+                <label
+                    style="font-weight: 600; color: var(--text-color); margin-bottom: 0.5rem; display: block;">Question
+                    Text</label>
+                <textarea name="questions[{{ question_loop.index }}][text]" required
+                    placeholder="Enter question text here..." class="form-control"
+                    style="min-height: 100px; padding: 1rem; font-size: 1rem; line-height: 1.5; resize: vertical;">{{ question.text }}</textarea>
+            </div>
+
+            <!-- Question Media URL -->
+            <div style="margin-bottom: 2rem;">
+                <label style="font-weight: 600; color: var(--text-color); margin-bottom: 0.5rem; display: block;">Media
+                    Attachment URL (Optional)</label>
+                <div style="position: relative;">
+                    <i class="fas fa-image"
+                        style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+                    <input type="text" name="questions[{{ question_loop.index }}][media_url]"
+                        value="{{ question.media_url or '' }}" placeholder="https://example.com/image.png"
+                        class="form-control" style="padding-left: 2.5rem;">
+                </div>
+            </div>
+            <div id="options-wrapper-{{ question_loop.index }}" {% if question.question_type=='text'
+                %}style="display: none;" {% endif %}
+                style="background: rgba(249, 250, 251, 0.5); padding: 1.5rem; border-radius: 8px; border: 1px dashed var(--border-color);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <label
+                        style="font-weight: 600; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-check-square" style="color: var(--success);"></i> Answering Options
+                    </label>
+                    <span style="font-size: 0.8rem; color: var(--text-muted);">Mark the correct answer(s) using the
+                        leftmost inputs</span>
+                </div>
+
+                <div class="options-grid" id="options-container-{{ question_loop.index }}"
+                    style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    {% for option in question.options %}
+                    <div class="form-group option-group" style="margin-bottom: 0;">
+                        <div style="display: flex; gap: 0.75rem; align-items: center; background: var(--bg-color); padding: 0.75rem; border-radius: 6px; border: 1px solid var(--border-color);"
+                            class="option-row" data-index="{{ loop.index0 }}">
+                            {% if question.question_type == 'multiple' %}
+                            <input type="checkbox" class="correct-toggle"
+                                name="questions[{{ question_loop.index }}][correct][]" value="{{ loop.index0 }}" {% if
+                                option.is_correct %}checked{% endif %}
+                                style="cursor: pointer; width: 1.25rem; height: 1.25rem; accent-color: var(--success);"
+                                title="Mark as correct answer">
+                            {% elif question.question_type not in ['matching', 'ordering'] %}
+                            <input type="radio" class="correct-toggle"
+                                name="questions[{{ question_loop.index }}][correct]" value="{{ loop.index0 }}" {% if
+                                option.is_correct %}checked{% endif %} {% if loop.index0==0 %}required{% endif %}
+                                style="cursor: pointer; width: 1.25rem; height: 1.25rem; accent-color: var(--success);"
+                                title="Mark as correct answer">
+                            {% endif %}
+
+                            <input type="hidden" name="questions[{{ question_loop.index }}][options_id][]"
+                                value="{{ option.id }}">
+
+                            {% if question.question_type == 'matching' %}
+                            {% set parts = option.text.split('::|::') %}
+                            {% set left_part = parts[0] if parts|length > 0 else option.text %}
+                            {% set right_part = parts[1] if parts|length > 1 else '' %}
+                            <span style="font-size: 1.2rem; cursor: move; color: var(--text-muted);"
+                                title="Drag to reorder">↕</span>
+                            <span class="order-label"
+                                style="display: none; color: var(--primary); font-size: 0.85rem; font-weight: 600; background: rgba(59, 130, 246, 0.1); padding: 0.3rem 0.75rem; border-radius: 999px;">Step
+                                {{ loop.index }}</span>
+                            <input type="text" name="questions[{{ question_loop.index }}][options][]"
+                                value="{{ left_part }}" required placeholder="Item"
+                                class="option-input-primary form-control" style="flex: 2; padding: 0.6rem;">
+
+                            <input type="text" name="questions[{{ question_loop.index }}][matches][]"
+                                value="{{ right_part }}" required placeholder="Matches with Match"
+                                class="option-input-secondary form-control" style="flex: 2; padding: 0.6rem;">
+                            {% elif question.question_type == 'ordering' %}
+                            <span style="font-size: 1.2rem; cursor: move; color: var(--text-muted);"
+                                title="Drag to reorder">↕</span>
+                            <span class="order-label"
+                                style="display: inline-block; color: var(--primary); font-size: 0.85rem; font-weight: 600; background: rgba(59, 130, 246, 0.1); padding: 0.3rem 0.75rem; border-radius: 999px;">Step
+                                {{ loop.index }}</span>
+                            <input type="text" name="questions[{{ question_loop.index }}][options][]"
+                                value="{{ option.text }}" required placeholder="Step {{ loop.index }}"
+                                class="option-input-primary form-control" style="flex: 2; padding: 0.6rem;">
+                            <input type="text" class="option-input-secondary form-control"
+                                name="questions[{{ question_loop.index }}][matches][]" placeholder="Matches with..."
+                                style="display: none; flex: 2; padding: 0.6rem;">
+                            {% else %}
+                            <span class="order-label"
+                                style="display: none; color: var(--primary); font-size: 0.85rem; font-weight: 600; background: rgba(59, 130, 246, 0.1); padding: 0.3rem 0.75rem; border-radius: 999px;">Step
+                                {{ loop.index }}</span>
+                            <input type="text" name="questions[{{ question_loop.index }}][options][]"
+                                value="{{ option.text }}" required placeholder="Option {{ loop.index }}"
+                                class="option-input-primary form-control" style="flex: 2; padding: 0.6rem;">
+                            <input type="text" class="option-input-secondary form-control"
+                                name="questions[{{ question_loop.index }}][matches][]" placeholder="Matches with..."
+                                style="display: none; flex: 2; padding: 0.6rem;">
+                            {% endif %}
+
+                            <div style="position: relative; flex: 1; min-width: 120px;">
+                                <i class="fas fa-image"
+                                    style="position: absolute; left: 0.6rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.8rem;"></i>
+                                <input type="text" name="questions[{{ question_loop.index }}][options_media][]"
+                                    value="{{ option.media_url or '' }}" class="form-control form-control-sm"
+                                    placeholder="Media URL (Opt)"
+                                    style="padding: 0.6rem 0.6rem 0.6rem 2rem; font-size: 0.85rem; width: 100%;">
+                            </div>
+
+                            <button type="button" class="btn"
+                                style="padding: 0.4rem; color: var(--error); background: rgba(239, 68, 68, 0.1); border-radius: 6px; transition: all 0.2s;"
+                                onclick="removeOption(this, '{{ question_loop.index }}')" title="Remove Option"
+                                onmouseover="this.style.background='var(--error)'; this.style.color='white';"
+                                onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'; this.style.color='var(--error)';">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <button type="button" id="add-option-btn-{{ question_loop.index }}" class="btn btn-secondary" {% if
+                    question.question_type in ['true_false', 'text' ] %}style="display: none;" {% else
+                    %}style="margin-top: 1rem; padding: 0.6rem 1rem; font-size: 0.9rem; border: 1px dashed var(--border-color); background: transparent; width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: background 0.2s;"
+                    {% endif %} onclick="addOption('{{ question_loop.index }}')"
+                    onmouseover="this.style.background='var(--glass-bg)';"
+                    onmouseout="this.style.background='transparent';">
+                    <i class="fas fa-plus-circle" style="color: var(--primary);"></i> Add Another Option
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="flex-between">
+        <button type="button" class="btn btn-secondary" onclick="addQuestion()">+ Add New Question</button>
+        <div style="display: flex; gap: 1rem;">
+            <a href="{{ url_for('teacher.dashboard') }}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+    </div>
+</form>
+
+<script>
+    // Initialize count with existing questions
+    let questionCount = parseInt("{{ quiz.questions|length }}", 10) || 0;
+
+    function addQuestion() {
+        questionCount++;
+        const container = document.getElementById('questions-container');
+        const questionHTML = `
+<div class="card question-block" id="question-${questionCount}" style="border: 1px solid var(--border-color); box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); padding: 1.5rem; margin-bottom: 2rem; border-radius: 12px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+        <h3 style="margin: 0; display: flex; align-items: center; gap: 0.5rem; color: var(--text-color);">
+            <i class="fas fa-question-circle" style="color: var(--primary);"></i> Question ${questionCount} (New)
+        </h3>
+        <button type="button" class="btn"
+            style="padding: 0.5rem 1rem; color: var(--error); background: rgba(239, 68, 68, 0.1); border-radius: 6px; font-weight: 500; font-size: 0.85rem; display: flex; align-items: center; gap: 0.5rem; transition: all 0.2s;"
+            onclick="removeQuestion(${questionCount})" 
+            onmouseover="this.style.background='var(--error)'; this.style.color='white';" 
+            onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'; this.style.color='var(--error)';">
+            <i class="fas fa-trash-alt"></i> Remove
+        </button>
+    </div>
+
+    <!-- Type Selection -->
+    <div style="margin-bottom: 1.5rem;">
+        <label style="font-weight: 600; color: var(--text-color); margin-bottom: 0.5rem; display: block;">Question Type</label>
+        <div style="position: relative;">
+            <i class="fas fa-list-ul" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+            <select name="questions[${questionCount}][type]" onchange="handleTypeChange(this, ${questionCount})" class="form-control" style="padding-left: 2.5rem; appearance: auto; font-size: 1rem;">
+                <option value="single">Single Choice</option>
+                <option value="multiple">Multiple Choice</option>
+                <option value="true_false">True / False</option>
+                <option value="text">Short Text</option>
+                <option value="matching">Matching Pairs</option>
+                <option value="ordering">Ordering Sequence</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Question Text Box -->
+    <div style="margin-bottom: 1.5rem;">
+        <label style="font-weight: 600; color: var(--text-color); margin-bottom: 0.5rem; display: block;">Question Text</label>
+        <textarea name="questions[${questionCount}][text]" required placeholder="Enter question text here..." class="form-control" style="min-height: 100px; padding: 1rem; font-size: 1rem; line-height: 1.5; resize: vertical;"></textarea>
+    </div>
+
+    <!-- Question Media URL -->
+    <div style="margin-bottom: 2rem;">
+        <label style="font-weight: 600; color: var(--text-color); margin-bottom: 0.5rem; display: block;">Media Attachment URL (Optional)</label>
+        <div style="position: relative;">
+            <i class="fas fa-image" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+            <input type="text" name="questions[${questionCount}][media_url]" placeholder="https://example.com/image.png" class="form-control" style="padding-left: 2.5rem;">
+        </div>
+    </div>
+    
+    <div id="options-wrapper-${questionCount}" style="background: rgba(249, 250, 251, 0.5); padding: 1.5rem; border-radius: 8px; border: 1px dashed var(--border-color);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <label style="font-weight: 600; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-check-square" style="color: var(--success);"></i> Answering Options
+            </label>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Mark the correct answer(s) using the leftmost inputs</span>
+        </div>
+        
+        <div class="options-grid" id="options-container-${questionCount}" style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <!-- Options will be added here -->
+        </div>
+        
+        <button type="button" id="add-option-btn-${questionCount}" class="btn btn-secondary" 
+            style="margin-top: 1rem; padding: 0.6rem 1rem; font-size: 0.9rem; border: 1px dashed var(--border-color); background: transparent; width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: background 0.2s;" 
+            onclick="addOption(${questionCount})" 
+            onmouseover="this.style.background='var(--glass-bg)';" 
+            onmouseout="this.style.background='transparent';">
+            <i class="fas fa-plus-circle" style="color: var(--primary);"></i> Add Another Option
+        </button>
+    </div>
+</div>
+`;
+        container.insertAdjacentHTML('beforeend', questionHTML);
+
+        // Add initial 2 options
+        addOption(questionCount);
+        addOption(questionCount);
+    }
+
+    function addOption(qId) {
+        const container = document.getElementById(`options-container-${qId}`);
+        const optionCount = container.children.length;
+        const newIndex = optionCount;
+
+        const optionHTML = `
+<div class="form-group option-group" style="margin-bottom: 0;">
+    <div style="display: flex; gap: 0.75rem; align-items: center; background: var(--bg-color); padding: 0.75rem; border-radius: 6px; border: 1px solid var(--border-color);" class="option-row" data-index="${newIndex}">
+        <input type="radio" class="correct-toggle" name="questions[${qId}][correct]" value="${newIndex}" ${newIndex === 0 ? 'required' : ''}
+            style="cursor: pointer; width: 1.25rem; height: 1.25rem; accent-color: var(--success);" title="Mark as correct answer">
+        
+        <input type="text" class="option-input-primary form-control" name="questions[${qId}][options][]" required placeholder="Option ${newIndex + 1}" style="flex: 2; padding: 0.6rem;">
+        
+        <div style="position: relative; flex: 1; min-width: 120px;">
+            <i class="fas fa-image" style="position: absolute; left: 0.6rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.8rem;"></i>
+            <input type="text" name="questions[${qId}][options_media][]" class="form-control form-control-sm" placeholder="Media URL (Opt)" style="padding: 0.6rem 0.6rem 0.6rem 2rem; font-size: 0.85rem; width: 100%;">
+        </div>
+        
+        <input type="text" class="option-input-secondary form-control" name="questions[${qId}][matches][]" placeholder="Matches with..." style="display: none; flex: 2; padding: 0.6rem;">
+        
+        <span class="order-label" style="display: none; color: var(--primary); font-size: 0.85rem; font-weight: 600; background: rgba(59, 130, 246, 0.1); padding: 0.3rem 0.75rem; border-radius: 999px;">Step ${newIndex + 1}</span>
+        
+        <button type="button" class="btn" style="padding: 0.4rem; color: var(--error); background: rgba(239, 68, 68, 0.1); border-radius: 6px; transition: all 0.2s;"
+            onclick="removeOption(this, ${qId})" title="Remove Option" onmouseover="this.style.background='var(--error)'; this.style.color='white';" onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'; this.style.color='var(--error)';">
+            <i class="fas fa-trash-alt"></i>
+        </button>
+    </div>
+</div>
+`;
+        container.insertAdjacentHTML('beforeend', optionHTML);
+        reindexOptions(qId);
+    }
+
+    function removeOption(btn, qId) {
+        const container = document.getElementById(`options-container-${qId}`);
+        if (container.children.length <= 2) {
+            showToast("A question must have at least 2 options.", "error");
+            return;
+        }
+        btn.closest('.option-group').remove();
+        reindexOptions(qId);
+    }
+
+    function reindexOptions(qId) {
+        const container = document.getElementById(`options-container-${qId}`);
+        const groups = container.querySelectorAll('.option-group');
+
+        groups.forEach((group, index) => {
+            const radio = group.querySelector('input[type="radio"], input[type="checkbox"]');
+            if (radio) radio.value = index;
+
+            const textInput = group.querySelector('.option-input-primary');
+            if (textInput && textInput.placeholder.startsWith('Option')) textInput.placeholder = `Option ${index + 1}`;
+            if (textInput && textInput.placeholder.startsWith('Item')) textInput.placeholder = `Item ${index + 1}`;
+            if (textInput && textInput.placeholder.startsWith('Correct')) textInput.placeholder = `Correct Sequence Step ${index + 1}`;
+
+            const orderLabel = group.querySelector('.order-label');
+            if (orderLabel) orderLabel.innerText = `Step ${index + 1}`;
+        });
+    }
+
+    function removeQuestion(id) {
+        document.getElementById(`question-${id}`).remove();
+    }
+
+    function handleTypeChange(selectElem, qId) {
+        const type = selectElem.value;
+        const wrapper = document.getElementById(`options-wrapper-${qId}`);
+        const container = document.getElementById(`options-container-${qId}`);
+        const addBtn = document.getElementById(`add-option-btn-${qId}`);
+
+        if (type === 'text') {
+            wrapper.style.display = 'none';
+        } else {
+            wrapper.style.display = 'block';
+            addBtn.style.display = 'flex';
+
+            if (type === 'true_false') {
+                container.innerHTML = '';
+                addOption(qId);
+                addOption(qId);
+
+                const inputs = container.querySelectorAll('.option-input-primary');
+                inputs[0].value = 'True';
+                inputs[0].readOnly = true;
+                inputs[1].value = 'False';
+                inputs[1].readOnly = true;
+
+                addBtn.style.display = 'none';
+            } else if (type === 'matching' || type === 'ordering') {
+                // Ensure at least 2 options exist when switching
+                if (container.children.length === 0) {
+                    addOption(qId);
+                    addOption(qId);
+                }
+            } else {
+                // Generic single/multiple choice setup
+                if (container.children.length === 0) {
+                    addOption(qId);
+                    addOption(qId);
+                }
+                const inputs = container.querySelectorAll('.option-input-primary');
+                inputs.forEach(input => {
+                    if (input.readOnly && (input.value === 'True' || input.value === 'False')) {
+                        input.value = '';
+                        input.readOnly = false;
+                    }
+                });
+            }
+
+            // UI adjustments for Matching / Ordering vs standard
+            const groups = container.querySelectorAll('.option-group');
+            groups.forEach((group, index) => {
+                const toggle = group.querySelector('.correct-toggle');
+                const matchInput = group.querySelector('.option-input-secondary');
+                const orderLabel = group.querySelector('.order-label');
+                const primaryInput = group.querySelector('.option-input-primary');
+
+                if (type === 'matching') {
+                    if (toggle) toggle.style.display = 'none';
+                    if (toggle) toggle.removeAttribute('required');
+                    if (matchInput) matchInput.style.display = 'block';
+                    if (matchInput) matchInput.required = true;
+                    if (orderLabel) orderLabel.style.display = 'none';
+                    if (primaryInput) primaryInput.placeholder = `Item ${index + 1}`;
+                } else if (type === 'ordering') {
+                    if (toggle) toggle.style.display = 'none';
+                    if (toggle) toggle.removeAttribute('required');
+                    if (matchInput) matchInput.style.display = 'none';
+                    if (matchInput) matchInput.removeAttribute('required');
+                    if (orderLabel) orderLabel.style.display = 'inline-block';
+                    if (primaryInput) primaryInput.placeholder = `Correct Sequence Step ${index + 1}`;
+                } else {
+                    if (toggle) toggle.style.display = 'inline-block';
+                    if (matchInput) matchInput.style.display = 'none';
+                    if (matchInput) matchInput.removeAttribute('required');
+                    if (orderLabel) orderLabel.style.display = 'none';
+                    if (primaryInput) primaryInput.placeholder = `Option ${index + 1}`;
+
+                    if (type === 'multiple') {
+                        if (toggle) toggle.type = 'checkbox';
+                        if (toggle) toggle.name = `questions[${qId}][correct][]`;
+                        if (toggle) toggle.removeAttribute('required');
+                    } else {
+                        if (toggle) toggle.type = 'radio';
+                        if (toggle) toggle.name = `questions[${qId}][correct]`;
+                        if (toggle) if (index === 0) toggle.required = true;
+                        else toggle.removeAttribute('required');
+                    }
+                }
+            });
+        }
+    }
+</script>
+{% endblock %}

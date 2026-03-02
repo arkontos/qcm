@@ -1,0 +1,309 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Create New Quiz</h1>
+
+<form
+    action="{{ url_for('teacher.add_quiz', user_id=target_id) if target_id != current_user.id else url_for('teacher.add_quiz') }}"
+    method="POST">
+    <div class="card">
+        <h2>Quiz Details</h2>
+        <div class="form-group">
+            <label for="title">Quiz Title</label>
+            <input type="text" id="title" name="title" required placeholder="e.g. Mathematics Final Exam">
+        </div>
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" name="description" rows="3"
+                placeholder="Brief description of the quiz content"></textarea>
+        </div>
+        <div class="form-group">
+            <label for="duration">Total Duration (minutes) (Optional, for reference)</label>
+            <input type="number" id="duration" name="duration" value="10" min="1">
+        </div>
+        <div class="form-group">
+            <label for="time_per_question">Time per Question (seconds)</label>
+            <input type="number" id="time_per_question" name="time_per_question" value="30" min="5" required>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-group">
+                <label for="start_time">Available From (Optional)</label>
+                <input type="datetime-local" id="start_time" name="start_time">
+            </div>
+            <div class="form-group">
+                <label for="end_time">Available Until (Optional)</label>
+                <input type="datetime-local" id="end_time" name="end_time">
+            </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 1rem;">
+            <label for="recurrence_pattern">Recurrence Pattern</label>
+            <select id="recurrence_pattern" name="recurrence_pattern"
+                style="width: 100%; border: 1px solid var(--border-color); border-radius: 8px; padding: 0.75rem; background: var(--input-bg); color: var(--text-color);">
+                <option value="none">None (One-time)</option>
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+            </select>
+        </div>
+
+        <div style="display: flex; gap: 2rem; margin-top: 1rem;">
+            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                <input type="checkbox" name="randomize_questions" value="true" style="width: auto;">
+                <span>Randomize Question Order</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                <input type="checkbox" name="show_results" value="true" checked style="width: auto;">
+                <span>Show Results to Student Immediately</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                <input type="checkbox" name="show_leaderboard" value="true" style="width: auto;">
+                <span>Enable Global Leaderboard</span>
+            </label>
+        </div>
+    </div>
+
+    <div class="card mt-4 mb-4" style="border-left: 4px solid var(--primary);">
+        <div class="flex-between" style="cursor: pointer;"
+            onclick="document.getElementById('bank-generator').style.display = document.getElementById('bank-generator').style.display === 'none' ? 'block' : 'none';">
+            <h2 style="margin: 0; font-size: 1.25rem;">Dynamically Generate from Bank</h2>
+            <span style="color: var(--text-muted); font-size: 0.875rem;">▼ Toggle Options</span>
+        </div>
+
+        <div id="bank-generator"
+            style="display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+            <p style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 1rem;">
+                Specify criteria below to randomly pull stored questions into this new quiz upon saving. These generated
+                questions will be appended alongside any manual questions you create below.
+            </p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
+                <div class="form-group">
+                    <label>Number of Questions</label>
+                    <input type="number" name="bank_count" min="0" value="0" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Category (Optional)</label>
+                    <select name="bank_category" class="form-control">
+                        <option value="">Any Category</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat.id }}">{{ cat.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Tag (Optional)</label>
+                    <select name="bank_tag" class="form-control">
+                        <option value="">Any Tag</option>
+                        {% for tag in tags %}
+                        <option value="{{ tag.id }}">#{{ tag.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="questions-container">
+        <!-- Questions will be added here dynamically -->
+    </div>
+
+    <div class="flex-between">
+        <button type="button" class="btn btn-secondary" onclick="addQuestion()">+ Add Question</button>
+        <button type="submit" class="btn btn-primary">Save Quiz</button>
+    </div>
+</form>
+
+<script>
+    let questionCount = 0;
+
+    function addQuestion() {
+        questionCount++;
+        const container = document.getElementById('questions-container');
+        const questionHTML = `
+<div class="card question-block" id="question-${questionCount}">
+    <div class="flex-between">
+        <h3>Question ${questionCount}</h3>
+        <button type="button" class="btn btn-secondary"
+            style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: rgba(239, 68, 68, 0.2);"
+            onclick="removeQuestion(${questionCount})">Remove Question</button>
+    </div>
+    <div class="question-fields-grid">
+        <div class="form-group">
+            <label>Question Text</label>
+            <input type="text" name="questions[${questionCount}][text]" required placeholder="Enter question text">
+        </div>
+        <div class="form-group">
+            <label>Type</label>
+            <select name="questions[${questionCount}][type]" onchange="handleTypeChange(this, ${questionCount})">
+                <option value="single">Single Choice</option>
+                <option value="multiple">Multiple Choice</option>
+                <option value="true_false">True / False</option>
+                <option value="text">Short Text</option>
+                <option value="matching">Matching Pairs</option>
+                <option value="ordering">Ordering Sequence</option>
+            </select>
+        </div>
+    </div>
+    <div class="form-group" style="margin-top: -0.5rem;">
+        <input type="text" name="questions[${questionCount}][media_url]" placeholder="Media URL (Optional Image/Video link)">
+    </div>
+    
+    <div id="options-wrapper-${questionCount}">
+        <label>Options</label>
+        <div class="options-grid" id="options-container-${questionCount}">
+            <!-- Options will be added here -->
+        </div>
+        <button type="button" id="add-option-btn-${questionCount}" class="btn btn-secondary btn-sm mt-2" onclick="addOption(${questionCount})">+ Add Option</button>
+    </div>
+</div>
+`;
+        container.insertAdjacentHTML('beforeend', questionHTML);
+
+        // Add initial 2 options
+        addOption(questionCount);
+        addOption(questionCount);
+    }
+
+    function addOption(qId) {
+        const container = document.getElementById(`options-container-${qId}`);
+        const optionCount = container.children.length;
+        const newIndex = optionCount;
+
+        const optionHTML = `
+<div class="form-group option-group">
+    <div style="display: flex; gap: 0.5rem; align-items: center;" class="option-row" data-index="${newIndex}">
+        <input type="radio" class="correct-toggle" name="questions[${qId}][correct]" value="${newIndex}" ${newIndex === 0 ? 'required' : ''}
+            style="width: auto;" title="Mark as correct answer">
+        <input type="text" class="option-input-primary" name="questions[${qId}][options][]" required placeholder="Option ${newIndex + 1}">
+        <input type="text" name="questions[${qId}][options_media][]" class="form-control form-control-sm" placeholder="Media URL (Opt)" style="max-width: 150px; padding: 0.4rem; font-size: 0.8rem;">
+        <input type="text" class="option-input-secondary" name="questions[${qId}][matches][]" placeholder="Matches with..." style="display: none;">
+        <span class="order-label" style="display: none; color: var(--text-muted); font-size: 0.875rem;">Step ${newIndex + 1}</span>
+        <button type="button" class="btn btn-secondary" style="padding: 0.2rem 0.5rem; font-size: 0.7rem;"
+            onclick="removeOption(this, ${qId})">X</button>
+    </div>
+</div>
+`;
+        container.insertAdjacentHTML('beforeend', optionHTML);
+        reindexOptions(qId);
+
+        // Ensure new option matches the currently selected type
+        const selectElem = document.querySelector(`select[name="questions[${qId}][type]"]`);
+        if (selectElem) {
+            handleTypeChange(selectElem, qId);
+        }
+    }
+
+    function removeOption(btn, qId) {
+        const container = document.getElementById(`options-container-${qId}`);
+        if (container.children.length <= 2) {
+            showToast("A question must have at least 2 options.", "error");
+            return;
+        }
+        btn.closest('.option-group').remove();
+        reindexOptions(qId);
+    }
+
+    function reindexOptions(qId) {
+        const container = document.getElementById(`options-container-${qId}`);
+        const groups = container.querySelectorAll('.option-group');
+        groups.forEach((group, index) => {
+            const radio = group.querySelector('input[type="radio"], input[type="checkbox"]');
+            if (radio) radio.value = index;
+
+            const textInput = group.querySelector('.option-input-primary');
+            if (textInput) textInput.placeholder = `Option ${index + 1}`;
+
+            const orderLabel = group.querySelector('.order-label');
+            if (orderLabel) orderLabel.innerText = `Step ${index + 1}:`;
+        });
+    }
+
+    function removeQuestion(id) {
+        document.getElementById(`question-${id}`).remove();
+    }
+
+    function handleTypeChange(selectElem, qId) {
+        const type = selectElem.value;
+        const wrapper = document.getElementById(`options-wrapper-${qId}`);
+        const container = document.getElementById(`options-container-${qId}`);
+        const addBtn = document.getElementById(`add-option-btn-${qId}`);
+
+        if (type === 'text') {
+            wrapper.style.display = 'none';
+        } else {
+            wrapper.style.display = 'block';
+            addBtn.style.display = 'inline-block';
+
+            if (type === 'true_false') {
+                container.innerHTML = '';
+                addOption(qId);
+                addOption(qId);
+
+                const inputs = container.querySelectorAll('.option-input-primary');
+                inputs[0].value = 'True';
+                inputs[0].readOnly = true;
+                inputs[1].value = 'False';
+                inputs[1].readOnly = true;
+
+                addBtn.style.display = 'none';
+            } else if (type === 'matching' || type === 'ordering') {
+                // Ensure at least 2 options exist when switching
+                if (container.children.length === 0) {
+                    addOption(qId);
+                    addOption(qId);
+                }
+            } else {
+                // Generic single/multiple choice setup
+                if (container.children.length === 0) {
+                    addOption(qId);
+                    addOption(qId);
+                }
+            }
+
+            // UI adjustments for Matching / Ordering vs standard
+            const groups = container.querySelectorAll('.option-group');
+            groups.forEach((group, index) => {
+                const toggle = group.querySelector('.correct-toggle');
+                const matchInput = group.querySelector('.option-input-secondary');
+                const orderLabel = group.querySelector('.order-label');
+                const primaryInput = group.querySelector('.option-input-primary');
+
+                if (type === 'matching') {
+                    toggle.style.display = 'none';
+                    toggle.removeAttribute('required');
+                    matchInput.style.display = 'block';
+                    matchInput.required = true;
+                    orderLabel.style.display = 'none';
+                    primaryInput.placeholder = `Item ${index + 1}`;
+                } else if (type === 'ordering') {
+                    toggle.style.display = 'none';
+                    toggle.removeAttribute('required');
+                    matchInput.style.display = 'none';
+                    matchInput.removeAttribute('required');
+                    orderLabel.style.display = 'inline-block';
+                    primaryInput.placeholder = `Correct Sequence Step ${index + 1}`;
+                } else {
+                    toggle.style.display = 'inline-block';
+                    matchInput.style.display = 'none';
+                    matchInput.removeAttribute('required');
+                    orderLabel.style.display = 'none';
+
+                    if (type === 'multiple') {
+                        toggle.type = 'checkbox';
+                        toggle.name = `questions[${qId}][correct][]`;
+                        toggle.removeAttribute('required');
+                    } else {
+                        toggle.type = 'radio';
+                        toggle.name = `questions[${qId}][correct]`;
+                        if (index === 0) toggle.required = true;
+                    }
+                }
+            });
+        }
+    }
+
+    // Add initial question
+    addQuestion();
+</script>
+{% endblock %}

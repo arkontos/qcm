@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="flex-between mb-4">
+    <div>
+        <h2 style="margin-bottom: 0.5rem">{{ classroom.name }}</h2>
+        <span
+            style="font-family:monospace; background:var(--bg-color); padding:0.25rem 0.5rem; border:1px dashed var(--primary); color:var(--primary); font-weight:bold;">Class
+            Code: {{ classroom.class_code }}</span>
+    </div>
+    <div style="display: flex; gap: 1rem;">
+        <a href="{{ url_for('teacher.classrooms') }}" class="btn btn-secondary">Back to Classrooms</a>
+    </div>
+</div>
+
+<div class="grid" style="grid-template-columns: 1fr 1fr; gap: 2rem;">
+
+    <!-- Enrolled Students Section -->
+    <div class="card p-4">
+        <h3 style="margin-top: 0; margin-bottom: 1.5rem;">Enrolled Students ({{ classroom.students|length }})</h3>
+
+        {% if classroom.students %}
+        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead>
+                <tr style="border-bottom: 2px solid var(--border-color);">
+                    <th style="padding: 0.75rem 0; font-weight: 600;">Rank</th>
+                    <th style="padding: 0.75rem 0; font-weight: 600;">Student Username</th>
+                    <th style="padding: 0.75rem 0; font-weight: 600;">Total XP</th>
+                    <th style="padding: 0.75rem 0; font-weight: 600; text-align: right;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in classroom.students | sort(attribute='xp', reverse=True) %}
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="padding: 0.75rem 0; font-weight: bold; color: var(--primary);">#{{ loop.index }}</td>
+                    <td style="padding: 0.75rem 0;">
+                        {{ student.username }}
+                        {% if loop.index == 1 %}<span title="Class Leader" style="margin-left:5px;">👑</span>{% endif %}
+                    </td>
+                    <td style="padding: 0.75rem 0; font-weight: 500;">{{ student.xp or 0 }} XP</td>
+                    <td style="padding: 0.75rem 0; text-align: right;">
+                        <form
+                            action="{{ url_for('teacher.remove_student_from_class', classroom_id=classroom.id, user_id=student.id) }}"
+                            method="POST" style="margin: 0;" onsubmit="return confirm('Remove student from class?');">
+                            <button type="submit"
+                                style="background: none; border: none; color: var(--error); cursor: pointer; text-decoration: underline;">Remove</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="color: var(--text-muted); text-align: center; margin: 2rem 0;">No students have joined this class yet.
+            Share the Class Code with your students.</p>
+        {% endif %}
+    </div>
+
+    <!-- Assigned Quizzes Section -->
+    <div class="card p-4">
+        <div class="flex-between" style="margin-bottom: 1.5rem; align-items: flex-start;">
+            <h3 style="margin: 0;">Assigned Quizzes ({{ classroom.quizzes|length }})</h3>
+            <button class="btn btn-primary btn-sm"
+                onclick="document.getElementById('assign-quiz-form').style.display='block'">+ Assign</button>
+        </div>
+
+        <div id="assign-quiz-form"
+            style="display: none; margin-bottom: 1.5rem; padding: 1rem; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px;">
+            <form action="{{ url_for('teacher.assign_quiz_to_class', classroom_id=classroom.id) }}" method="POST"
+                style="display: flex; gap: 0.5rem;">
+                <select name="quiz_id" class="form-control" required style="flex: 1;">
+                    <option value="">Select a Quiz to assign...</option>
+                    {% for q in teacher_quizzes if q not in classroom.quizzes %}
+                    <option value="{{ q.id }}">{{ q.title }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-primary btn-sm">Assign</button>
+            </form>
+        </div>
+
+        {% if classroom.quizzes %}
+        <ul style="list-style: none; padding: 0; margin: 0;">
+            {% for quiz in classroom.quizzes %}
+            <li
+                style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid var(--border-color);">
+                <div>
+                    <strong>{{ quiz.title }}</strong>
+                    <div style="font-size: 0.875rem; color: var(--text-muted);">{{ quiz.questions|length }} Qs</div>
+                </div>
+                <form
+                    action="{{ url_for('teacher.unassign_quiz_from_class', classroom_id=classroom.id, quiz_id=quiz.id) }}"
+                    method="POST" style="margin: 0;" onsubmit="return confirm('Unassign quiz from class?');">
+                    <button type="submit"
+                        style="background: none; border: none; color: var(--error); cursor: pointer; text-decoration: underline;">Unassign</button>
+                </form>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p style="color: var(--text-muted); text-align: center; margin: 2rem 0;">No quizzes assigned to this class yet.
+        </p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

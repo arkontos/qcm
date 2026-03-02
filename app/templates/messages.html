@@ -1,0 +1,233 @@
+{% extends 'base.html' %}
+
+{% block title %}Messages | QCM Platform{% endblock %}
+
+{% block content %}
+<div class="card"
+    style="padding: 0; height: calc(100vh - 130px); min-height: 500px; display: flex; flex-direction: column; overflow: hidden;">
+    <div
+        style="display: flex; justify-content: space-between; align-items: center; padding: 1.5rem; border-bottom: 1px solid var(--border-color);">
+        <h2 style="margin: 0;"><i class="fas fa-comments"></i> {{ _('Discussions') }}</h2>
+        <button class="btn btn-primary"
+            onclick="document.getElementById('new-message-modal').style.display='flex'; setTimeout(() => document.getElementById('new-message-modal').classList.add('show'), 10);">
+            <i class="fas fa-paper-plane"></i> {{ _('New Message') }}
+        </button>
+    </div>
+
+    <div style="display: flex; flex: 1; overflow: hidden;">
+        <!-- Left Pane: Thread List -->
+        <div
+            style="width: 350px; border-right: 1px solid var(--border-color); overflow-y: auto; background-color: var(--bg-color);">
+            {% if threads %}
+            <ul style="list-style: none; padding: 0; margin: 0;">
+                {% for t in threads %}
+                <li style="border-bottom: 1px solid var(--border-color);">
+                    <a href="{{ url_for('messages.view_thread', thread_id=t.id) }}"
+                        style="display: block; padding: 1rem; text-decoration: none; color: inherit; background-color: {% if active_thread and active_thread.id == t.id %}var(--primary-light){% elif t.has_unread %}white{% else %}transparent{% endif %}; transition: background-color 0.2s;">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.25rem;">
+                            <strong
+                                style="color: var(--text-color); font-size: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                                {% if t.has_unread %}
+                                <span
+                                    style="width: 8px; height: 8px; background-color: var(--error); border-radius: 50%; display: inline-block;"></span>
+                                {% endif %}
+                                {{ t.other_user.username }}
+                            </strong>
+                            <span style="font-size: 0.75rem; color: var(--text-muted);">{{
+                                t.latest_timestamp.strftime('%b %d') }}</span>
+                        </div>
+                        <div
+                            style="font-size: 0.9rem; color: var(--text-color); font-weight: {% if t.has_unread %}600{% else %}400{% endif %}; margin-bottom: 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                            {{ t.subject }}
+                        </div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: capitalize;">
+                            {{ t.other_user.role }}
+                        </div>
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <div style="padding: 2rem; text-align: center; color: var(--text-muted);">
+                <i class="fas fa-inbox fa-3x" style="margin-bottom: 1rem; opacity: 0.5;"></i>
+                <p>{{ _('No active discussions.') }}</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Right Pane: Active Thread -->
+        <div style="flex: 1; display: flex; flex-direction: column; background-color: var(--card-bg);">
+            {% if active_thread %}
+            <!-- Thread Header -->
+            <div
+                style="padding: 1.5rem; border-bottom: 1px solid var(--border-color); background-color: var(--bg-color); display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0; font-size: 1.25rem; color: var(--text-color);">Re: {{
+                    active_thread.subject or _("No Subject") }}</h3>
+                <button type="button" class="btn btn-sm delete-thread-btn"
+                    style="background-color: rgba(231, 76, 60, 0.1); border: 1px solid rgba(231, 76, 60, 0.2); color: var(--error); cursor: pointer; font-size: 0.9rem; padding: 0.4rem 0.8rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 0.4rem; transition: all 0.2s;"
+                    onmouseover="this.style.backgroundColor='rgba(231, 76, 60, 0.2)';"
+                    onmouseout="this.style.backgroundColor='rgba(231, 76, 60, 0.1)';"
+                    title="{{ _('Delete discussion') }}"
+                    onclick="confirmDeleteConversation('{{ url_for('messages.delete_thread', thread_id=active_thread.id) }}')">
+                    <i class="fas fa-trash-alt"></i> {{ _('Delete') }}
+                </button>
+            </div>
+
+            <!-- Messages Stream -->
+            <div id="thread-messages"
+                style="flex: 1; overflow-y: auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 1.5rem;">
+                {% for msg in thread_messages %}
+                {% set is_me = msg.sender_id == current_user.id %}
+                <div
+                    style="display: flex; flex-direction: column; {% if is_me %}align-items: flex-end;{% else %}align-items: flex-start;{% endif %}">
+                    <span
+                        style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.25rem; padding: 0 0.5rem;">
+                        {% if is_me %}{{ _('You') }}{% else %}{{ msg.sender.username }}{% endif %} • {{
+                        msg.timestamp.strftime('%b
+                        %d, %H:%M') }}
+                    </span>
+                    <div style="max-width: 75%; padding: 1rem; border-radius: 12px; line-height: 1.5; box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+                        {% if is_me %}
+                        background-color: var(--primary); color: white; border-top-right-radius: 2px;
+                        {% else %}
+                        background-color: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); border-top-left-radius: 2px;
+                        {% endif %}">
+                        <div style="white-space: pre-wrap;">{{ msg.content }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Reply Box -->
+            <div style="padding: 1.5rem; border-top: 1px solid var(--border-color); background-color: var(--bg-color);">
+                <form action="{{ url_for('messages.send_message') }}" method="POST">
+                    <input type="hidden" name="parent_id" value="{{ active_thread.id }}">
+                    <input type="hidden" name="receiver_id" value="{{ reply_to.id }}">
+
+                    <div style="display: flex; gap: 1rem; align-items: flex-end;">
+                        <div style="flex: 1;">
+                            <label for="reply-content" class="sr-only" style="display: none;">{{ _('Reply') }}</label>
+                            <textarea id="reply-content" name="content" rows="3" class="form-control" required
+                                style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 8px; resize: vertical;"
+                                placeholder="{{ _('Write a reply...') }}"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary"
+                            style="padding: 0.75rem 1.5rem; height: fit-content;">
+                            <i class="fas fa-paper-plane"></i> {{ _('Send') }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <script>
+                // Scroll to bottom of thread automatically
+                const messagesDiv = document.getElementById('thread-messages');
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            </script>
+
+            {% else %}
+            <!-- Unselected State -->
+            <div
+                style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-muted);">
+                <i class="far fa-comments fa-4x" style="margin-bottom: 1.5rem; opacity: 0.2;"></i>
+                <h3 style="margin: 0;">{{ _('Select a discussion to start messaging') }}</h3>
+                <p style="margin-top: 0.5rem;">{{ _('Or click "New Message" to start a new thread.') }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Compose Modal -->
+<div id="new-message-modal" class="modal-backdrop"
+    style="display: none; align-items: center; justify-content: center; z-index: 10000; position: fixed; inset: 0; background: rgba(0,0,0,0.5);">
+    <div class="modal-content card" style="width: 100%; max-width: 500px; position: relative; margin: auto;">
+        <div class="modal-header" style="margin-bottom: 1rem;">
+            <h3>{{ _('New Discussion') }}</h3>
+            <button type="button" class="btn btn-secondary btn-sm"
+                onclick="document.getElementById('new-message-modal').classList.remove('show'); setTimeout(() => document.getElementById('new-message-modal').style.display='none', 200);"
+                style="position: absolute; right: 1rem; top: 1rem;">X</button>
+        </div>
+        <form action="{{ url_for('messages.send_message') }}" method="POST">
+            <div class="form-group" style="margin-bottom: 1rem;">
+                <label for="receiver_id">{{ _('To') }}</label>
+                <select id="receiver_id" name="receiver_id" class="form-control" required
+                    style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px;">
+                    <option value="">-- {{ _('Select Recipient') }} --</option>
+                    {% for contact in contacts %}
+                    <option value="{{ contact.id }}">{{ contact.username }} ({{ contact.role }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group" style="margin-bottom: 1rem;">
+                <label for="subject">{{ _('Subject') }}</label>
+                <input type="text" id="subject" name="subject" class="form-control" required
+                    style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px;"
+                    placeholder="{{ _('Brief description...') }}">
+            </div>
+            <div class="form-group" style="margin-bottom: 1rem;">
+                <label for="content">{{ _('Message') }}</label>
+                <textarea id="content" name="content" rows="6" class="form-control" required
+                    style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; resize: vertical;"
+                    placeholder="{{ _('Type your message here...') }}"></textarea>
+            </div>
+            <div class="mt-4" style="text-align: right;">
+                <button type="submit" class="btn btn-primary" style="padding: 0.5rem 1.5rem;"><i
+                        class="fas fa-paper-plane"></i> {{ _('Send') }}</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Conversation Modal -->
+<div id="delete-conversation-modal" class="modal-backdrop"
+    style="display: none; align-items: center; justify-content: center; z-index: 10000; position: fixed; inset: 0; background: rgba(0,0,0,0.5);">
+    <div class="modal-content card"
+        style="width: 100%; max-width: 400px; position: relative; margin: auto; text-align: center;">
+        <div class="modal-header"
+            style="margin-bottom: 1rem; border-bottom: none; display: flex; justify-content: center;">
+            <div
+                style="width: 60px; height: 60px; border-radius: 50%; background-color: rgba(231, 76, 60, 0.1); color: var(--error); display: flex; align-items: center; justify-content: center; font-size: 2rem; margin-bottom: 1rem;">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <button type="button" class="btn btn-secondary btn-sm"
+                onclick="document.getElementById('delete-conversation-modal').classList.remove('show'); setTimeout(() => document.getElementById('delete-conversation-modal').style.display='none', 200);"
+                style="position: absolute; right: 1rem; top: 1rem;">X</button>
+        </div>
+        <h3 style="margin-top: 0;">{{ _('Delete Conversation?') }}</h3>
+        <p style="color: var(--text-muted); margin-bottom: 1.5rem;">
+            {{ _('Are you sure you want to delete this conversation? This will only remove it from your inbox. This
+            action cannot be undone.') }}
+        </p>
+        <div style="display: flex; gap: 1rem; justify-content: center;">
+            <button type="button" class="btn btn-secondary"
+                onclick="document.getElementById('delete-conversation-modal').classList.remove('show'); setTimeout(() => document.getElementById('delete-conversation-modal').style.display='none', 200);">{{
+                _('Cancel') }}</button>
+            <form id="delete-conversation-form" method="POST" style="margin: 0;">
+                <button type="submit" class="btn btn-primary"
+                    style="background-color: var(--error); border-color: var(--error);">{{ _('Delete') }}</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function replyTo(userId, username) {
+        document.getElementById('receiver_id').value = userId;
+        document.getElementById('content').value = `\n\n--- Replying to ${username} ---\n`;
+        document.getElementById('content').focus();
+        const modal = document.getElementById('new-message-modal');
+        modal.style.display = 'flex';
+        setTimeout(() => modal.classList.add('show'), 10);
+    }
+
+    function confirmDeleteConversation(url) {
+        const form = document.getElementById('delete-conversation-form');
+        form.action = url;
+        const modal = document.getElementById('delete-conversation-modal');
+        modal.style.display = 'flex';
+        setTimeout(() => modal.classList.add('show'), 10);
+    }
+</script>
+{% endblock %}

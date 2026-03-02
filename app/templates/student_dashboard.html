@@ -1,0 +1,352 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Dashboard - QCM Platform{% endblock %}
+
+{% block content %}
+<div class="flex-between mb-4">
+    <h2>{{ _('Student Dashboard') }}</h2>
+</div>
+
+<div class="dashboard-grid" style="margin-bottom: 2rem;">
+    <!-- Join Quiz Card -->
+    <div class="card" style="display: flex; flex-direction: column;">
+        <h3>{{ _('Join a Quiz') }}</h3>
+        <p style="color: var(--text-muted); flex: 1;">{{ _('Enter an access code to start a quiz directly.') }}</p>
+        <form id="join-form" action="#" method="GET" class="mobile-stack"
+            style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+            <input type="text" id="access_code" class="form-control" placeholder="{{ _('e.g. AB12CD34') }}"
+                style="flex: 1;" required>
+            <button type="submit" class="btn btn-primary"
+                onclick="event.preventDefault(); window.location.href='/student/join/' + document.getElementById('access_code').value.trim()">{{
+                _('Join') }}</button>
+        </form>
+    </div>
+
+    <!-- Join Class Card -->
+    <div class="card" style="display: flex; flex-direction: column;">
+        <h3>{{ _('Join a Classroom') }}</h3>
+        <p style="color: var(--text-muted); flex: 1;">{{ _('Enter a class code provided by your teacher.') }}</p>
+        <form action="{{ url_for('student.join_class') }}" method="POST" class="mobile-stack"
+            style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+            <input type="text" name="class_code" class="form-control" placeholder="{{ _('e.g. XY9Z') }}"
+                style="flex: 1;" required>
+            <button type="submit" class="btn btn-primary">{{ _('Enroll') }}</button>
+        </form>
+    </div>
+
+    <!-- Join Live Card -->
+    <div class="card"
+        style="display: flex; flex-direction: column; border: 2px solid var(--primary); background: linear-gradient(180deg, white 0%, #f0fdf4 100%);">
+        <h3 style="color: var(--success); display: flex; align-items: center; gap: 0.5rem;">
+            <span
+                style="display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: var(--success); animation: pulse 2s infinite;"></span>
+            {{ _('Live Session') }}
+        </h3>
+        <p style="color: var(--text-muted); flex: 1;">{{ _('Enter a 4-digit game PIN to join.') }}</p>
+        <form action="{{ url_for('student.join_live') }}" method="POST" class="mobile-stack"
+            style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+            <input type="hidden" name="name" value="{{ current_user.username }}">
+            <input type="text" name="pin" class="form-control" placeholder="{{ _('PIN') }}"
+                style="flex: 1; font-family: monospace; letter-spacing: 0.2em; font-weight: bold; font-size: 1.25rem; text-align: center;"
+                required autocomplete="off" maxlength="4">
+            <button type="submit" class="btn btn-primary"
+                style="background:var(--success); border-color:var(--success);">{{ _('Join') }}</button>
+        </form>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <!-- Quick Stats Card -->
+    <div class="card" style="grid-column: span 1;">
+        <h3>{{ _('Your Stats') }}</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.5rem;">
+            <div style="text-align: center; padding: 1rem; background: var(--bg-color); border-radius: 12px;">
+                <div style="font-size: 2.5rem; font-weight: 800; color: var(--primary); line-height: 1;">{{
+                    submissions|length }}</div>
+                <div
+                    style="color: var(--text-muted); font-size: 0.875rem; font-weight: 600; margin-top: 0.5rem; text-transform: uppercase;">
+                    {{ _('Attempts') }}</div>
+            </div>
+            <div style="text-align: center; padding: 1rem; background: var(--bg-color); border-radius: 12px;">
+                {% set total_score = submissions|sum(attribute='score') %}
+                {% set total_max = submissions|sum(attribute='max_score') %}
+                {% set avg = (total_score / total_max * 100)|round|int if total_max > 0 else 0 %}
+                <div
+                    style="font-size: 2.5rem; font-weight: 800; color: {% if avg >= 50 %}var(--success){% else %}var(--error){% endif %}; line-height: 1;">
+                    {{ avg }}%</div>
+                <div
+                    style="color: var(--text-muted); font-size: 0.875rem; font-weight: 600; margin-top: 0.5rem; text-transform: uppercase;">
+                    {{ _('Avg Score') }}</div>
+            </div>
+            <div
+                style="text-align: center; padding: 1rem; background: #eff6ff; border-radius: 12px; border: 1px solid #bfdbfe;">
+                <div style="font-size: 2.5rem; font-weight: 800; color: #3b82f6; line-height: 1;">{{ current_user.xp or
+                    0 }}</div>
+                <div
+                    style="color: #60a5fa; font-size: 0.875rem; font-weight: 600; margin-top: 0.5rem; text-transform: uppercase;">
+                    {{ _('Total XP') }}</div>
+            </div>
+            <div
+                style="text-align: center; padding: 1rem; background: #fffbeb; border-radius: 12px; border: 1px solid #fde68a;">
+                <div style="font-size: 2.5rem; font-weight: 800; color: #f59e0b; line-height: 1;">{{
+                    current_user.current_streak or 0 }}🔥</div>
+                <div
+                    style="color: #fbbf24; font-size: 0.875rem; font-weight: 600; margin-top: 0.5rem; text-transform: uppercase;">
+                    {{ _('Day Streak') }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Competency Radar Card -->
+    <div class="card" style="grid-column: span 1;">
+        <h3 style="margin-top: 0;">{{ _('Category Radar') }}</h3>
+        {% if radar_data and radar_data.labels %}
+        <div style="position: relative; height: 280px; width: 100%; display: flex; justify-content: center;">
+            <canvas id="competencyRadar"></canvas>
+        </div>
+        {% else %}
+        <div style="display: flex; align-items: center; justify-content: center; height: 100%; min-height: 200px;">
+            <p style="color: var(--text-muted); text-align: center; max-width: 80%;">{{ _('Take more categorized quizzes
+                to see your competency radar.') }}</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Tag Radar Card -->
+    <div class="card" style="grid-column: span 1;">
+        <h3 style="margin-top: 0;">{{ _('Skill Tag Radar') }}</h3>
+        {% if tag_radar_data and tag_radar_data.labels %}
+        <div style="position: relative; height: 280px; width: 100%; display: flex; justify-content: center;">
+            <canvas id="tagCompetencyRadar"></canvas>
+        </div>
+        {% else %}
+        <div style="display: flex; align-items: center; justify-content: center; height: 100%; min-height: 200px;">
+            <p style="color: var(--text-muted); text-align: center; max-width: 80%;">{{ _('Take more quizzes with
+                specific skill tags to see your tag radar.') }}</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Trophy Case -->
+<h3 class="mt-4 mb-4" style="display: flex; align-items: center; gap: 0.5rem;">{{ _('🏆 Your Trophy Case') }}</h3>
+<div class="card mb-4"
+    style="background: linear-gradient(135deg, rgba(255,215,0,0.1) 0%, rgba(255,215,0,0.02) 100%); border: 1px solid rgba(255,215,0,0.3); padding: 2rem;">
+    {% if earned_achievements %}
+    <div style="display: flex; gap: 1.5rem; flex-wrap: wrap;">
+        {% for ach in earned_achievements %}
+        <div
+            style="background: white; border: 1px solid var(--border-color); border-radius: 16px; padding: 1.5rem; text-align: center; width: 160px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); transition: transform 0.2s;">
+            <div style="font-size: 3rem; margin-bottom: 0.5rem; filter: drop-shadow(0 4px 3px rgb(0 0 0 / 0.07));"
+                title="{{ ach.description }}">{{ ach.icon_url }}
+            </div>
+            <div style="font-weight: 700; font-size: 0.875rem; color: var(--text-color);">{{ ach.name }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p style="text-align: center; color: var(--text-muted); margin: 2rem 0; font-size: 1.25rem;">{{ _("You haven't
+        earned any
+        badges yet. Keep taking quizzes to unlock them!") }}</p>
+    {% endif %}
+</div>
+
+<h3 class="mt-4 mb-4">{{ _('Pending Assignments') }}</h3>
+{% if pending_class_quizzes %}
+<div class="dashboard-grid" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); margin-bottom: 2rem;">
+    {% for item in pending_class_quizzes %}
+    <div class="card p-4">
+        <div style="font-weight: 600; font-size: 1.1rem; color: var(--text-color); margin-bottom: 0.25rem;">{{
+            item.quiz.title }}</div>
+        <div style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 1.5rem;">{{ _('Class:') }} <span
+                style="font-weight: 600;">{{ item.classroom_name
+                }}</span></div>
+        <div class="mobile-stack" style="display: flex; gap: 0.75rem;">
+            <a href="{{ url_for('student.take_quiz', access_code=item.quiz.access_code) }}" class="btn btn-primary"
+                style="flex: 1; text-align: center; font-weight: bold;">{{ _('Take Quiz') }}</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card text-center mb-4" style="padding: 3rem 1.5rem;">
+    <p style="margin-bottom: 0; color: var(--text-muted); font-size: 1.1rem;">{{ _('No pending assignments from your
+        classrooms.') }}</p>
+</div>
+{% endif %}
+
+<h3 class="mt-4 mb-4">{{ _('Your Enrolled Classrooms') }}</h3>
+{% if current_user.classrooms %}
+<div class="dashboard-grid" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); margin-bottom: 2rem;">
+    {% for classroom in current_user.classrooms %}
+    <div class="card p-4" style="border-left: 4px solid var(--primary);">
+        <h4 style="margin-bottom: 0.5rem; color: var(--text-color); font-size: 1.25rem;">{{ classroom.name }}</h4>
+        <div style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+            {{ _('Teacher:') }} <span style="font-weight: 600;">{{ classroom.teacher.username }}</span>
+        </div>
+        <div style="font-size: 0.875rem; color: var(--text-muted);">
+            {{ _('Code:') }} <span
+                style="font-family: monospace; font-weight: bold; background: var(--bg-color); padding: 0.2rem 0.6rem; border-radius: 6px;">{{
+                classroom.class_code }}</span>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card text-center mb-4" style="padding: 3rem 1.5rem;">
+    <p style="margin-bottom: 0; color: var(--text-muted); font-size: 1.1rem;">{{ _("You haven't joined any classrooms
+        yet.") }}</p>
+</div>
+{% endif %}
+
+<h3 class="mt-4 mb-4">{{ _('Past Submissions') }}</h3>
+{% if submissions %}
+<div class="card" style="padding: 0; overflow-x: auto;">
+    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+        <thead>
+            <tr style="background: var(--bg-color); border-bottom: 2px solid var(--border-color);">
+                <th
+                    style="padding: 1.25rem 1.5rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; font-size: 0.875rem;">
+                    {{ _('Quiz Title') }}</th>
+                <th
+                    style="padding: 1.25rem 1.5rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; font-size: 0.875rem;">
+                    {{ _('Date Taken') }}</th>
+                <th
+                    style="padding: 1.25rem 1.5rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; font-size: 0.875rem;">
+                    {{ _('Score') }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for sub in submissions %}
+            <tr style="border-bottom: 1px solid var(--border-color); transition: background-color 0.15s;"
+                onmouseover="this.style.backgroundColor='#f8fafc'"
+                onmouseout="this.style.backgroundColor='transparent'">
+                <td style="padding: 1.25rem 1.5rem;">
+                    <span style="font-weight: 600; font-size: 1.1rem;">{{ sub.quiz.title }}</span>
+                </td>
+                <td style="padding: 1.25rem 1.5rem; color: var(--text-muted); font-size: 0.875rem;">
+                    {{ sub.submitted_at.strftime('%Y-%m-%d %H:%M') }}
+                </td>
+                <td style="padding: 1.25rem 1.5rem;">
+                    {% set percentage = (sub.score / sub.max_score * 100)|round|int if sub.max_score > 0 else 0 %}
+                    <span
+                        style="padding: 0.4rem 0.8rem; border-radius: 999px; font-size: 0.875rem; font-weight: bold; background: {% if percentage >= 50 %}#dcfce7{% else %}#fee2e2{% endif %}; color: {% if percentage >= 50 %}#166534{% else %}#991b1b{% endif %}; border: 1px solid {% if percentage >= 50 %}#bbf7d0{% else %}#fecaca{% endif %};">
+                        {{ sub.score }} / {{ sub.max_score }} ({{ percentage }}%)
+                    </span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="card text-center" style="padding: 4rem 1.5rem;">
+    <p style="margin-bottom: 0; color: var(--text-muted); font-size: 1.25rem;">{{ _("You haven't taken any quizzes
+        yet.") }}</p>
+</div>
+{% endif %}
+
+<div id="radar-data-container" style="display: none;">
+    <script id="category-labels-data" type="application/json">{{ radar_data.labels | tojson | safe }}</script>
+    <script id="category-scores-data" type="application/json">{{ radar_data.scores | tojson | safe }}</script>
+    {% if tag_radar_data and tag_radar_data.labels %}
+    <script id="tag-labels-data" type="application/json">{{ tag_radar_data.labels | tojson | safe }}</script>
+    <script id="tag-scores-data" type="application/json">{{ tag_radar_data.scores | tojson | safe }}</script>
+    <div id="has-tag-data" data-exists="true"></div>
+    {% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Category Radar
+        const catLabelsRaw = document.getElementById('category-labels-data');
+        const catScoresRaw = document.getElementById('category-scores-data');
+
+        if (catLabelsRaw && catScoresRaw) {
+            const ctx = document.getElementById('competencyRadar').getContext('2d');
+            const data = {
+                labels: JSON.parse(catLabelsRaw.textContent),
+                datasets: [{
+                    label: '{{ _("Category Competency") }} (%)',
+                    data: JSON.parse(catScoresRaw.textContent),
+                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                    borderColor: 'rgba(59, 130, 246, 1)',
+                    pointBackgroundColor: 'rgba(59, 130, 246, 1)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgba(59, 130, 246, 1)',
+                    borderWidth: 2
+                }]
+            };
+
+            const config = {
+                type: 'radar',
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { display: true, color: 'rgba(0,0,0,0.05)' },
+                            grid: { color: 'rgba(0,0,0,0.05)' },
+                            suggestedMin: 0,
+                            suggestedMax: 100,
+                            ticks: { stepSize: 20, backdropColor: 'transparent' }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                },
+            };
+            new Chart(ctx, config);
+        }
+
+        // Tag Radar (if exists)
+        const hasTagData = document.getElementById('has-tag-data');
+        if (hasTagData) {
+            const tagLabelsRaw = document.getElementById('tag-labels-data');
+            const tagScoresRaw = document.getElementById('tag-scores-data');
+
+            const tagCtx = document.getElementById('tagCompetencyRadar').getContext('2d');
+            const tagData = {
+                labels: JSON.parse(tagLabelsRaw.textContent),
+                datasets: [{
+                    label: '{{ _("Skill Tag Competency") }} (%)',
+                    data: JSON.parse(tagScoresRaw.textContent),
+                    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                    borderColor: 'rgba(16, 185, 129, 1)',
+                    pointBackgroundColor: 'rgba(16, 185, 129, 1)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgba(16, 185, 129, 1)',
+                    borderWidth: 2
+                }]
+            };
+
+            const tagConfig = {
+                type: 'radar',
+                data: tagData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { display: true, color: 'rgba(0,0,0,0.05)' },
+                            grid: { color: 'rgba(0,0,0,0.05)' },
+                            suggestedMin: 0,
+                            suggestedMax: 100,
+                            ticks: { stepSize: 20, backdropColor: 'transparent' }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                },
+            };
+            new Chart(tagCtx, tagConfig);
+        }
+    });
+</script>
+{% endblock %}

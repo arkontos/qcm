@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    body {
+        background: #f8fafc;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: calc(100vh - 80px);
+        /* adjust for navbar */
+    }
+
+    .join-container {
+        width: 100%;
+        max-width: 450px;
+        background: white;
+        padding: 3rem 2rem;
+        border-radius: 24px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        border-top: 8px solid var(--primary);
+        text-align: center;
+    }
+
+    .join-input {
+        font-size: 2.5rem;
+        font-family: 'Courier New', monospace;
+        letter-spacing: 0.2em;
+        text-align: center;
+        padding: 1rem;
+        border: 4px solid var(--border-color);
+        border-radius: 16px;
+        font-weight: 900;
+        transition: all 0.2s;
+    }
+
+    .join-input:focus {
+        border-color: var(--primary);
+        outline: none;
+        box-shadow: 0 0 0 8px rgba(99, 102, 241, 0.1);
+    }
+
+    .join-btn {
+        width: 100%;
+        padding: 1.5rem;
+        font-size: 1.5rem;
+        font-weight: 900;
+        border-radius: 16px;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-top: 1.5rem;
+        transition: transform 0.1s;
+    }
+
+    .join-btn:hover {
+        transform: translateY(-2px);
+    }
+
+    .join-btn:active {
+        transform: translateY(2px);
+    }
+</style>
+
+<div class="join-container">
+    <h1 style="font-size: 3rem; color: var(--text-color); margin-bottom: 0.5rem; font-weight: 900;">Join Game</h1>
+    <p style="color: var(--text-muted); font-size: 1.25rem; margin-bottom: 2rem;">Look at the big screen!</p>
+
+    <form action="{{ url_for('student.join_live') }}" method="POST">
+        {% if not current_user.is_authenticated %}
+        <div style="margin-bottom: 1.5rem; text-align: left;">
+            <label for="name"
+                style="font-weight: bold; color: var(--text-color); display: block; margin-bottom: 0.5rem;">Nickname</label>
+            <input type="text" id="name" name="name" class="form-control"
+                style="font-size: 1.5rem; padding: 1rem; border-radius: 12px; border: 2px solid var(--border-color);"
+                required>
+        </div>
+        {% endif %}
+
+        <div style="margin-bottom: 1rem; text-align: left;">
+            <label for="pin"
+                style="font-weight: bold; color: var(--text-color); display: block; margin-bottom: 0.5rem;">Game
+                PIN</label>
+            <input type="text" id="pin" name="pin" class="form-control join-input" required autocomplete="off"
+                maxlength="4" placeholder="1234">
+        </div>
+
+        <button type="submit" class="btn btn-primary join-btn">Enter</button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,351 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    body {
+        background-color: #f8fafc;
+    }
+
+    .live-header-card {
+        background: linear-gradient(135deg, var(--primary), #4f46e5);
+        color: white;
+        border-radius: 24px;
+        padding: 4rem 2rem;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .live-header-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 70%);
+        animation: pulse 10s linear infinite;
+        pointer-events: none;
+    }
+
+    @keyframes pulse {
+        0% {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.05);
+        }
+
+        100% {
+            transform: scale(1);
+        }
+    }
+
+    .pin-display {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        display: inline-block;
+        padding: 1rem 3rem;
+        border-radius: 16px;
+        margin-top: 1.5rem;
+    }
+
+    .player-pill {
+        background: white;
+        color: var(--text-color);
+        padding: 1rem 1.5rem;
+        border-radius: 9999px;
+        font-weight: bold;
+        font-size: 1.25rem;
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        border: 2px solid transparent;
+        transition: all 0.2s;
+    }
+
+    .player-pill.answered {
+        border-color: var(--success);
+        background: #f0fdf4;
+    }
+
+    @keyframes popIn {
+        from {
+            transform: scale(0.8);
+            opacity: 0;
+        }
+
+        to {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    .question-card {
+        background: white;
+        border-radius: 24px;
+        box-shadow: var(--shadow-lg);
+        padding: 4rem 2rem;
+        margin-top: 2rem;
+        border-top: 8px solid var(--primary);
+    }
+
+    .host-btn {
+        padding: 1rem 2.5rem;
+        font-size: 1.25rem;
+        border-radius: 9999px;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        transition: all 0.2s;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    .host-btn:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+
+    .options-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+        margin-top: 3rem;
+    }
+
+    .option-block {
+        padding: 2rem;
+        border-radius: 16px;
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.15);
+    }
+
+    @media (max-width: 768px) {
+        .options-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .live-header-card h1 {
+            font-size: 1.75rem !important;
+        }
+
+        .pin-display div:last-child {
+            font-size: 4rem !important;
+        }
+
+        .flex-between {
+            flex-direction: column;
+            align-items: center !important;
+            gap: 1rem;
+        }
+
+        #controls-area {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            gap: 0.5rem;
+        }
+
+        .host-btn {
+            width: 100%;
+        }
+
+        #question-text {
+            font-size: 1.5rem !important;
+        }
+    }
+</style>
+
+<div class="live-header-card text-center mb-4" id="header-area">
+    <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">{{ quiz.title }}</h1>
+    <p style="font-size: 1.5rem; opacity: 0.9; margin: 0;">Join at <strong
+            style="color: #fbbf24; text-decoration: underline;">{{ url_for('student.join_live', _external=True)
+            }}</strong></p>
+
+    <div class="pin-display">
+        <div
+            style="font-size: 1rem; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.8; margin-bottom: 0.5rem;">
+            Game PIN</div>
+        <div
+            style="font-size: 6rem; font-weight: 900; letter-spacing: 0.15em; font-family: 'Courier New', monospace; line-height: 1;">
+            {{ live_session.pin }}</div>
+    </div>
+</div>
+
+<div class="flex-between mb-4 mt-5" style="align-items: flex-end;">
+    <h2 style="font-size: 2rem; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+        <span
+            style="background: var(--primary); color: white; border-radius: 50%; width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; font-size: 1.5rem;"
+            id="player-count">0</span>
+        Players
+    </h2>
+    <div id="controls-area">
+        <button id="start-btn" class="btn btn-primary host-btn" disabled
+            style="background: var(--success); border-color: var(--success);">Start Game ▶</button>
+        <button id="next-btn" class="btn btn-primary host-btn" style="display:none;">Next Question ⏭</button>
+        <button id="leaderboard-btn" class="btn btn-secondary host-btn"
+            style="display:none; background: #8b5cf6; color: white; border: none;">Skip & Show Podium ⏭🏆</button>
+    </div>
+</div>
+
+<div id="players-list" style="display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 2rem;">
+    <!-- Players injected here -->
+</div>
+
+<div id="question-area" class="question-card text-center" style="display:none;">
+    <div id="q-number"
+        style="color: var(--primary); font-weight: bold; font-size: 1.25rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1rem;">
+    </div>
+    <h2 id="question-text" style="font-size: 2.5rem; color: var(--text-color); margin: 0; line-height: 1.3;"></h2>
+
+    <div id="options-area" class="options-grid">
+        <!-- Options injected here -->
+    </div>
+
+    <div style="margin-top: 3rem; display: inline-block; background: #f1f5f9; padding: 1rem 2rem; border-radius: 16px;">
+        <span style="font-size: 1.25rem; color: var(--text-muted); font-weight: bold;">Answers received:</span>
+        <span id="answers-count"
+            style="font-size: 2rem; font-weight: 900; color: var(--primary); margin-left: 1rem;">0</span>
+    </div>
+</div>
+
+<div id="leaderboard-area" class="question-card" style="display:none; text-align: center; border-top-color: #fbbf24;">
+    <h2 style="font-size: 3rem; color: #fbbf24; margin-bottom: 2rem;">🏆 Top Players 🏆</h2>
+    <div id="leaderboard-list"
+        style="max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 1rem;"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+<script>
+    const socket = io();
+    const pin = "{{ live_session.pin }}";
+    let players = 0;
+
+    socket.on('connect', () => {
+        socket.emit('host_join', { pin: pin });
+    });
+
+    socket.on('player_joined', (data) => {
+        players++;
+        document.getElementById('player-count').textContent = players;
+        document.getElementById('start-btn').disabled = false;
+
+        const playerDiv = document.createElement('div');
+        playerDiv.className = 'player-pill';
+        playerDiv.innerHTML = `👤 ${data.name}`;
+        playerDiv.id = 'player-' + data.id;
+        document.getElementById('players-list').appendChild(playerDiv);
+    });
+
+    let answersCount = 0;
+
+    socket.on('new_question', (data) => {
+        answersCount = 0;
+        document.getElementById('answers-count').textContent = '0';
+        document.getElementById('header-area').style.display = 'none'; // hide giant pin during questions
+        document.getElementById('question-area').style.display = 'block';
+        document.getElementById('leaderboard-area').style.display = 'none';
+
+        document.getElementById('q-number').textContent = `Question ${data.index} of ${data.total}`;
+        document.getElementById('question-text').textContent = data.text;
+
+        const optionsArea = document.getElementById('options-area');
+        optionsArea.innerHTML = '';
+        if (data.type !== 'text') {
+            const colors = ['#ef4444', '#3b82f6', '#eab308', '#22c55e'];
+            const shapes = ['▲', '◆', '●', '■'];
+            data.options.forEach((opt, idx) => {
+                const div = document.createElement('div');
+                div.className = 'option-block';
+                div.style.backgroundColor = colors[idx % colors.length];
+                div.innerHTML = `<span style="opacity:0.5; font-size: 2rem; margin-right: 1rem;">${shapes[idx % shapes.length]}</span> <span style="flex:1; text-align:left;">${opt.text}</span>`;
+                optionsArea.appendChild(div);
+            });
+        } else {
+            optionsArea.innerHTML = '<div style="grid-column: span 2; padding: 3rem; background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 16px; font-size: 1.5rem; color: var(--text-muted);">Students are typing their answers...</div>';
+        }
+
+        document.getElementById('next-btn').style.display = 'none';
+        document.getElementById('leaderboard-btn').style.display = 'inline-block';
+
+        // Reset player pill highlights
+        document.querySelectorAll('.player-pill').forEach(p => p.classList.remove('answered'));
+    });
+
+    socket.on('answer_received', (data) => {
+        answersCount++;
+        document.getElementById('answers-count').textContent = answersCount;
+
+        // highlight player pill
+        const pCard = document.getElementById('player-' + data.participant_id);
+        if (pCard) {
+            pCard.classList.add('answered');
+            // pop animation
+            pCard.style.animation = 'none';
+            pCard.offsetHeight; // trigger reflow
+            pCard.style.animation = 'popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+        }
+    });
+
+    socket.on('leaderboard_data', (data) => {
+        document.getElementById('question-area').style.display = 'none';
+        document.getElementById('leaderboard-area').style.display = 'block';
+
+        const list = document.getElementById('leaderboard-list');
+        list.innerHTML = '';
+        data.leaders.forEach((l, idx) => {
+            let medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`;
+            let bg = idx === 0 ? 'background: linear-gradient(to right, #fef3c7, #fde68a); border-color: #fbbf24;' : 'background: white; border-color: var(--border-color);';
+            list.innerHTML += `
+            <div style="padding: 1.5rem 2rem; display:flex; justify-content:space-between; align-items: center; border-radius: 16px; border: 2px solid; ${bg} box-shadow: var(--shadow-sm); font-size: 1.5rem; font-weight: bold;">
+                <span style="display:flex; align-items:center; gap: 1rem;">
+                    <span style="font-size: 2rem; width: 40px; text-align: center;">${medal}</span> 
+                    ${l.name}
+                </span>
+                <span style="background: var(--bg-color); padding: 0.5rem 1.5rem; border-radius: 999px;">${l.score}</span>
+            </div>`;
+        });
+
+        document.getElementById('leaderboard-btn').style.display = 'none';
+        document.getElementById('next-btn').style.display = 'inline-block';
+        document.getElementById('next-btn').textContent = "Next Question ⏭";
+    });
+
+    socket.on('quiz_end', () => {
+        document.getElementById('question-area').style.display = 'none';
+        document.getElementById('next-btn').style.display = 'none';
+        document.getElementById('leaderboard-btn').style.display = 'none';
+        socket.emit('show_leaderboard', { pin: pin });
+
+        document.querySelector('#leaderboard-area h2').textContent = "🎉 Final Results 🎉";
+    });
+
+    document.getElementById('start-btn').addEventListener('click', () => {
+        document.getElementById('start-btn').style.display = 'none';
+        socket.emit('next_question', { pin: pin });
+    });
+
+    document.getElementById('next-btn').addEventListener('click', () => {
+        document.getElementById('leaderboard-area').style.display = 'none';
+        socket.emit('next_question', { pin: pin });
+    });
+
+    document.getElementById('leaderboard-btn').addEventListener('click', () => {
+        socket.emit('show_leaderboard', { pin: pin });
+    });
+
+    window.onbeforeunload = function () {
+        socket.emit('end_session', { pin: pin });
+    };
+</script>
+{% endblock %}

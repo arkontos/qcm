@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="flex-between mb-4">
+    <div>
+        <h2 style="margin-bottom: 0.5rem">Item Analysis: {{ quiz.title }}</h2>
+        <span style="color:var(--text-muted); font-size:0.875rem;">Based on {{ analysis_data[0].total_attempts if
+            analysis_data and analysis_data[0] else 0 }} total attempts</span>
+    </div>
+    <div style="display: flex; gap: 1rem;">
+        <a href="{{ url_for('teacher.view_results', quiz_id=quiz.id) }}" class="btn btn-secondary">Back to Results</a>
+    </div>
+</div>
+
+<div class="card p-4">
+    <div
+        style="background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem 1.5rem; margin-bottom: 2rem;">
+        <h4 style="margin-top: 0; margin-bottom: 0.5rem;">How to read this report:</h4>
+        <ul style="margin: 0; padding-left: 1.5rem; font-size: 0.875rem; color: var(--text-muted);">
+            <li><strong>Difficulty (P):</strong> Percentage of students who answered correctly. 30%-80% is generally
+                good.</li>
+            <li><strong>Discrimination (D):</strong> How well the question differentiates between high-scoring and
+                low-scoring students. &gt; 0.3 is excellent, &lt; 0.1 is poor and might indicate a flaw in the question.
+            </li>
+        </ul>
+    </div>
+
+    {% if analysis_data %}
+    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+        <thead>
+            <tr style="border-bottom: 2px solid var(--border-color);">
+                <th style="padding: 1rem; width: 45%;">Question</th>
+                <th style="padding: 1rem; text-align: center;">Difficulty (P)</th>
+                <th style="padding: 1rem; text-align: center;">Discrimination (D)</th>
+                <th style="padding: 1rem;">Analysis</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in analysis_data %}
+            <tr style="border-bottom: 1px solid var(--border-color);">
+                <td style="padding: 1rem;">{{ item.question }}</td>
+
+                <td style="padding: 1rem; text-align: center;">
+                    <div
+                        style="font-size: 1.25rem; font-weight: 600; color: {% if item.difficulty_pct > 80 %}var(--success){% elif item.difficulty_pct < 30 %}var(--error){% else %}var(--primary){% endif %};">
+                        {{ item.difficulty_pct }}%
+                    </div>
+                </td>
+
+                <td style="padding: 1rem; text-align: center;">
+                    <div
+                        style="font-size: 1.25rem; font-weight: 600; color: {% if item.discrimination_index > 0.3 %}var(--success){% elif item.discrimination_index < 0.1 %}var(--error){% else %}var(--primary){% endif %};">
+                        {{ item.discrimination_index }}
+                    </div>
+                </td>
+
+                <td style="padding: 1rem; font-size: 0.875rem; color: var(--text-muted);">
+                    <div style="margin-bottom: 0.25rem;">
+                        {% if item.difficulty_pct > 80 %}
+                        <span style="color: var(--warning);">Too Easy</span>
+                        {% elif item.difficulty_pct < 30 %} <span style="color: var(--error);">Too Hard</span>
+                            {% else %}
+                            <span style="color: var(--success);">Good Difficulty</span>
+                            {% endif %}
+                    </div>
+                    <div>
+                        {% if item.discrimination_index > 0.3 %}
+                        <span style="color: var(--success);">Excellent Discrimination</span>
+                        {% elif item.discrimination_index < 0.1 %} <span style="color: var(--error);">Poor
+                            Discrimination (Review!)</span>
+                            {% else %}
+                            <span style="color: var(--warning);">Fair Discrimination</span>
+                            {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="text-align: center; color: var(--text-muted); padding: 2rem 0;">No multiple-choice questions or sufficient
+        data available for item analysis.</p>
+    {% endif %}
+</div>
+{% endblock %}

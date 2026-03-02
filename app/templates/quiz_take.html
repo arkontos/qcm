@@ -1,0 +1,492 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="flex-between"
+    style="position: sticky; top: 0; z-index: 100; background: rgba(15, 23, 42, 0.95); padding: 1rem; margin: -2rem -2rem 1rem -2rem; border-bottom: 1px solid var(--glass-border); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+    <h2>{{ quiz.title }}</h2>
+    <div class="glass-card" style="margin-bottom: 0; padding: 0.5rem 1rem; border-color: var(--primary);">
+        {% if is_practice %}
+        <span id="timer" style="font-weight: 700; font-size: 1.125rem; color: var(--primary);"><i
+                class="fas fa-dumbbell"></i> Practice Mode</span>
+        {% else %}
+        <span id="timer" style="font-weight: 700; font-size: 1.125rem; color: var(--text-color);">Loading...</span>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card" style="margin-bottom: 1.5rem; padding: 1.25rem 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+        <span id="progress-text" style="font-weight: 500; font-size: 0.875rem;">Question 1 of {{ quiz.questions|length
+            }}</span>
+        <div style="width: 250px; height: 6px; background: var(--border-color); border-radius: 3px; overflow: hidden;">
+            <div id="progress-bar"
+                style="width: 0%; height: 100%; background: var(--text-color); transition: width 0.3s;">
+            </div>
+        </div>
+    </div>
+</div>
+
+{% macro render_media(url) %}
+{% if url %}
+{% set lower_url = url | lower %}
+<div style="margin-top: 1rem; margin-bottom: 1rem; text-align: center; width: 100%;">
+    {% if lower_url.endswith('.mp4') or lower_url.endswith('.webm') %}
+    <video controls style="max-width: 100%; max-height: 400px; border-radius: 8px;">
+        <source src="{{ url }}" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+    {% elif lower_url.endswith('.mp3') or lower_url.endswith('.wav') or lower_url.endswith('.ogg') %}
+    <audio controls style="width: 100%; max-width: 400px;">
+        <source src="{{ url }}" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+    {% else %}
+    <img src="{{ url }}" alt="Media"
+        style="max-width: 100%; max-height: 400px; border-radius: 8px; border: 1px solid var(--border-color);">
+    {% endif %}
+</div>
+{% endif %}
+{% endmacro %}
+
+<form id="quiz-form" action="{{ url_for('student.submit', access_code=quiz.access_code) }}" method="POST">
+    <input type="hidden" name="tab_switches" id="tab_switches" value="0">
+    {% for question in quiz.questions %}
+    <div class="card question-container" id="q-container-{{ loop.index0 }}" style="display: none;">
+        <h3 style="margin-bottom: 2rem; font-size: 1.25rem; font-weight: 500; line-height: 1.5;">{{ loop.index }}. {{
+            question.text }}</h3>
+        {{ render_media(question.media_url) }}
+        {% if question.question_type == 'text' %}
+        <div class="form-group" style="margin-bottom: 0.5rem;">
+            <textarea name="q_{{ question.id }}" rows="4"
+                style="width: 100%; border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; resize: vertical;"
+                placeholder="Type your answer here..."></textarea>
+        </div>
+        {% elif question.question_type == 'ordering' %}
+        <p style="color: var(--text-muted); margin-bottom: 1rem; font-size: 0.875rem;">Drag and drop the items below to
+            place them in the correct sequence.</p>
+        <ul class="sortable-list" id="order-list-{{ question.id }}"
+            style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem;">
+            <!-- Shuffle options on render for ordering -->
+            {% set shuffled_options = question.options | list %}
+            {# We can't neatly random.shuffle in pure Jinja without custom filters, so JS handles initial shuffle or we
+            accept default DB order initially and JS randomizes it #}
+            {% for option in shuffled_options %}
+            <li class="sortable-item card" data-id="{{ option.id }}" draggable="true"
+                style="padding: 1rem; cursor: grab; background: var(--card-bg); border: 1px solid var(--border-color); display: flex; align-items: center; gap: 1rem;">
+                <i class="fas fa-grip-vertical text-muted"></i>
+                <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 0.25rem;">
+                    <span style="font-weight: 500;">{{ option.text }}</span>
+                    {{ render_media(option.media_url) }}
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+        <input type="hidden" name="q_{{ question.id }}_order" id="q_{{ question.id }}_order_input" value="">
+
+        {% elif question.question_type == 'matching' %}
+        <p style="color: var(--text-muted); margin-bottom: 1rem; font-size: 0.875rem;">Match the items on the left to
+            their corresponding pairs on the right. Select an item, then click its match.</p>
+
+        <div class="matching-container" data-qid="{{ question.id }}"
+            style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+            <!-- Left Column: Items -->
+            <div class="matching-left">
+                <h4 style="margin-bottom: 1rem; color: var(--text-muted);">Items</h4>
+                <ul style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 0.5rem;"
+                    class="match-sources">
+                    {% for option in question.options %}
+                    {% set item_text = option.text.split('::|::')[0] %}
+                    <li class="match-source card" data-id="{{ option.id }}"
+                        style="padding: 1rem; cursor: pointer; border: 2px solid transparent; background: var(--card-bg); text-align: center; font-weight: 500; transition: all 0.2s;">
+                        {{ item_text }}
+                        {{ render_media(option.media_url) }}
+                    </li>
+                    <input type="hidden" name="q_{{ question.id }}_match_{{ option.id }}"
+                        id="match-input-{{ option.id }}" value="">
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <!-- Right Column: Matches -->
+            <div class="matching-right">
+                <h4 style="margin-bottom: 1rem; color: var(--text-muted);">Targets</h4>
+                <ul style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 0.5rem;"
+                    class="match-targets">
+                    {# In a real scenario we'd shuffle the right side. We'll do a simple reverse for now so it's not 1:1
+                    visually linear #}
+                    {% for option in question.options|reverse %}
+                    {% set match_text = option.text.split('::|::')[1] %}
+                    <li class="match-target card" data-text="{{ match_text }}"
+                        style="padding: 1rem; cursor: pointer; border: 2px dashed var(--border-color); background: var(--bg-color); text-align: center; position: relative;">
+                        <span class="target-text">{{ match_text }}</span>
+                        <div class="matched-item-badge"
+                            style="display: none; margin-top: 0.5rem; padding: 0.25rem; font-size: 0.75rem; background: var(--primary); color: white; border-radius: 4px;">
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        {% else %}
+        <div class="options-grid" style="gap: 1rem;">
+            {% for option in question.options %}
+            <div class="form-group" style="margin-bottom: 0.5rem;">
+                <label
+                    style="display: flex; align-items: center; gap: 1rem; cursor: pointer; padding: 1.25rem; border: 1px solid var(--border-color); border-radius: 8px; transition: all 0.2s;"
+                    class="option-label">
+                    {% if question.question_type == 'multiple' %}
+                    <input type="checkbox" name="q_{{ question.id }}" value="{{ option.id }}"
+                        style="width: auto; margin:0; box-shadow:none;">
+                    {% else %}
+                    <input type="radio" name="q_{{ question.id }}" value="{{ option.id }}"
+                        style="width: auto; margin:0; box-shadow:none;">
+                    {% endif %}
+                    <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 0.25rem;">
+                        <span style="font-size: 1rem;">{{ option.text }}</span>
+                        {{ render_media(option.media_url) }}
+                    </div>
+                </label>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="text-center" style="margin-top: 2.5rem;">
+            <button type="button" class="btn btn-primary" onclick="nextQuestion()"
+                style="padding: 0.75rem 2.5rem; font-size: 1rem;">
+                {% if loop.last %}Submit Quiz{% else %}Next Question →{% endif %}
+            </button>
+        </div>
+    </div>
+    {% endfor %}
+</form>
+
+<script>
+    const questions = document.querySelectorAll('.question-container');
+    const totalQuestions = questions.length;
+    let currentIndex = 0;
+
+    // Time per question in seconds
+    const timePerQuestion = parseInt("{{ quiz.time_per_question }}", 10) || 30;
+    let timeLeft = timePerQuestion;
+    let timerInterval;
+
+    let tabSwitchesCount = 0;
+
+    let isPaused = false;
+
+    // Inject Server Vars safely for JS parser
+    const isPracticeMode = "{{ is_practice }}" === "True";
+
+    if (!isPracticeMode) {
+        // Fullscreen and Visibility logic
+        const fullscreenOverlay = document.createElement('div');
+        fullscreenOverlay.style.cssText = 'position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(15, 23, 42, 0.98); z-index:9999; display:flex; flex-direction:column; justify-content:center; align-items:center; color:white;';
+        fullscreenOverlay.innerHTML = `
+            <h2 style="margin-bottom:1rem;">Ready to begin?</h2>
+            <p style="margin-bottom:2rem; text-align:center; max-width:400px; color:var(--text-muted);">This quiz requires fullscreen mode. Exiting fullscreen or switching tabs will be recorded as suspicious activity.</p>
+            <button class="btn btn-primary" id="start-fullscreen-btn" style="font-size:1.25rem; padding:1rem 2rem;">Start Quiz</button>
+        `;
+        document.body.appendChild(fullscreenOverlay);
+
+        document.getElementById('start-fullscreen-btn').addEventListener('click', () => {
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen();
+            } else if (elem.webkitRequestFullscreen) { /* Safari */
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) { /* IE11 */
+                elem.msRequestFullscreen();
+            }
+
+            fullscreenOverlay.style.display = 'none';
+            if (currentIndex === 0 && !timerInterval) {
+                showQuestion(0);
+            } else {
+                isPaused = false;
+            }
+        });
+
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement) {
+                fullscreenOverlay.style.display = 'flex';
+                fullscreenOverlay.querySelector('h2').innerText = "Fullscreen Exited";
+                fullscreenOverlay.querySelector('p').innerText = "You have left fullscreen mode. Please return to fullscreen to continue the quiz. This action has been recorded.";
+                isPaused = true;
+                tabSwitchesCount++;
+                document.getElementById('tab_switches').value = tabSwitchesCount;
+                if (typeof showToast === 'function') {
+                    showToast("Warning: Exiting fullscreen is tracked by your instructor.", "error");
+                }
+            }
+        });
+
+        document.addEventListener("visibilitychange", () => {
+            if (document.hidden) {
+                tabSwitchesCount++;
+                document.getElementById('tab_switches').value = tabSwitchesCount;
+                isPaused = true;
+            } else {
+                if (!document.fullscreenElement) {
+                    fullscreenOverlay.style.display = 'flex';
+                    fullscreenOverlay.querySelector('h2').innerText = "Tab Switched & Fullscreen Exited";
+                } else {
+                    isPaused = false;
+                }
+                if (typeof showToast === 'function') {
+                    showToast("Warning: Tab switching is tracked by your instructor.", "error");
+                } else {
+                    alert("Warning: Leaving the quiz tab has been recorded.");
+                }
+            }
+        });
+
+        // Anti Copy/Paste/Context Menu
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.addEventListener('copy', event => {
+            event.preventDefault();
+            if (typeof showToast === 'function') showToast("Copying is disabled during the quiz.", "error");
+        });
+        document.addEventListener('cut', event => event.preventDefault());
+        document.addEventListener('paste', event => {
+            event.preventDefault();
+            if (typeof showToast === 'function') showToast("Pasting is disabled during the quiz.", "error");
+        });
+    } else {
+        // Practice mode auto-starts without fullscreen
+        if (currentIndex === 0) {
+            showQuestion(0);
+        }
+    }
+
+    function startTimer() {
+        if (isPracticeMode) {
+            // No timer in practice mode
+            return;
+        } else {
+            timeLeft = timePerQuestion;
+            updateTimerDisplay();
+
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (isPaused) return; // Don't count down if they are explicitly paused via overlay
+
+                timeLeft--;
+                updateTimerDisplay();
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    nextQuestion();
+                }
+            }, 1000);
+        }
+    }
+
+    function updateTimerDisplay() {
+        if (!isPracticeMode) {
+            const timerEl = document.getElementById('timer');
+            if (timerEl) {
+                timerEl.innerHTML = `⏳ ${timeLeft}s`;
+                if (timeLeft <= 5) {
+                    timerEl.style.color = 'var(--error)';
+                } else {
+                    timerEl.style.color = 'var(--text-color)';
+                }
+            }
+        }
+    }
+
+    function showQuestion(index) {
+        questions.forEach((q, i) => {
+            q.style.display = i === index ? 'block' : 'none';
+        });
+
+        // Update progress
+        document.getElementById('progress-text').innerText = `Question ${index + 1} of ${totalQuestions}`;
+        const progress = ((index + 1) / totalQuestions) * 100;
+        document.getElementById('progress-bar').style.width = `${progress}%`;
+
+        startTimer();
+    }
+
+    function nextQuestion() {
+        if (currentIndex < totalQuestions - 1) {
+            currentIndex++;
+            showQuestion(currentIndex);
+        } else {
+            // Submit form
+            clearInterval(timerInterval);
+            document.getElementById('quiz-form').submit();
+        }
+    }
+
+    // Option Styling interaction
+    document.querySelectorAll('input[type="radio"], input[type="checkbox"]').forEach(input => {
+        input.addEventListener('change', function () {
+            if (this.type === 'radio') {
+                // Reset all in group for radio
+                const name = this.name;
+                document.querySelectorAll(`input[name="${name}"]`).forEach(r => {
+                    const label = r.closest('label');
+                    label.style.borderColor = 'var(--border-color)';
+                    label.style.background = 'transparent';
+                    label.style.boxShadow = 'none';
+                });
+            } else if (this.type === 'checkbox') {
+                // For checkbox just update the individual one based on checked status
+                const label = this.closest('label');
+                if (!this.checked) {
+                    label.style.borderColor = 'var(--border-color)';
+                    label.style.background = 'transparent';
+                    label.style.boxShadow = 'none';
+                    return;
+                }
+            }
+
+            // Highlight selected
+            if (this.checked) {
+                const label = this.closest('label');
+                label.style.borderColor = 'var(--text-color)';
+                label.style.background = '#f9fafb';
+                label.style.boxShadow = '0 0 0 1px var(--text-color)';
+            }
+        });
+    });
+
+    // --- Drag & Drop Ordering Logic ---
+    document.querySelectorAll('.sortable-list').forEach(list => {
+        let draggedItem = null;
+
+        list.addEventListener('dragstart', function (e) {
+            if (e.target.classList.contains('sortable-item')) {
+                draggedItem = e.target;
+                setTimeout(() => {
+                    e.target.style.opacity = '0.5';
+                }, 0);
+            }
+        });
+
+        list.addEventListener('dragend', function (e) {
+            if (e.target.classList.contains('sortable-item')) {
+                setTimeout(() => {
+                    draggedItem.style.opacity = '1';
+                    draggedItem = null;
+                    updateOrderInput(list);
+                }, 0);
+            }
+        });
+
+        list.addEventListener('dragover', function (e) {
+            e.preventDefault();
+            const afterElement = getDragAfterElement(list, e.clientY);
+            if (afterElement == null) {
+                list.appendChild(draggedItem);
+            } else {
+                list.insertBefore(draggedItem, afterElement);
+            }
+        });
+    });
+
+    function getDragAfterElement(container, y) {
+        const draggableElements = [...container.querySelectorAll('.sortable-item:not([style*="opacity: 0.5"])')];
+
+        return draggableElements.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+            if (offset < 0 && offset > closest.offset) {
+                return { offset: offset, element: child };
+            } else {
+                return closest;
+            }
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+
+    function updateOrderInput(list) {
+        // Find the hidden input associated with this list
+        const hiddenInputId = list.id.replace('order-list-', 'q_') + '_order_input';
+        const hiddenInput = document.getElementById(hiddenInputId);
+
+        if (hiddenInput) {
+            const itemIds = [...list.querySelectorAll('.sortable-item')].map(item => item.getAttribute('data-id'));
+            hiddenInput.value = itemIds.join(',');
+        }
+    }
+
+    // Initialize the hidden inputs for ordering questions on load
+    document.addEventListener('DOMContentLoaded', () => {
+        // Shuffle utility to randomize presentation for students
+        function shuffleDOM(container) {
+            for (let i = container.children.length; i >= 0; i--) {
+                container.appendChild(container.children[Math.random() * i | 0]);
+            }
+        }
+
+        document.querySelectorAll('.sortable-list').forEach(list => {
+            shuffleDOM(list);
+            updateOrderInput(list);
+        });
+
+        document.querySelectorAll('.match-targets').forEach(list => {
+            shuffleDOM(list);
+        });
+
+        document.querySelectorAll('.match-sources').forEach(list => {
+            shuffleDOM(list);
+        });
+    });
+
+    // --- Click-based Matching Logic ---
+    document.querySelectorAll('.matching-container').forEach(container => {
+        let selectedSource = null;
+
+        const sources = container.querySelectorAll('.match-source');
+        const targets = container.querySelectorAll('.match-target');
+
+        sources.forEach(source => {
+            source.addEventListener('click', () => {
+                // Deselect others
+                sources.forEach(s => {
+                    s.style.borderColor = 'transparent';
+                    s.classList.remove('selected');
+                });
+
+                // Select this one
+                source.style.borderColor = 'var(--primary)';
+                source.classList.add('selected');
+                selectedSource = source;
+            });
+        });
+
+        targets.forEach(target => {
+            target.addEventListener('click', () => {
+                if (!selectedSource) return;
+
+                const sourceId = selectedSource.getAttribute('data-id');
+                const sourceText = selectedSource.innerText;
+                const targetText = target.getAttribute('data-text');
+
+                // Update Badge UI on target
+                const badge = target.querySelector('.matched-item-badge');
+                badge.innerText = `Matched: ${sourceText}`;
+                badge.style.display = 'block';
+                target.style.borderColor = 'var(--primary)';
+                target.style.background = 'var(--card-bg)';
+
+                // Update hidden input mapped to that source ID
+                const hiddenInputId = `match-input-${sourceId}`;
+                const hiddenInput = document.getElementById(hiddenInputId);
+                if (hiddenInput) {
+                    hiddenInput.value = targetText;
+                }
+
+                // Deselect source
+                selectedSource.style.borderColor = 'transparent';
+                selectedSource.classList.remove('selected');
+                selectedSource.style.opacity = '0.5'; // Visually indicate it's been used
+                selectedSource = null;
+            });
+        });
+    });
+</script>
+{% endblock %}

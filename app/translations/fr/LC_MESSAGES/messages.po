@@ -1,0 +1,824 @@
+# French translations for PROJECT.
+# Copyright (C) 2026 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-03-02 21:15+0100\n"
+"PO-Revision-Date: 2026-02-24 22:58+0100\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: fr\n"
+"Language-Team: fr <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+#: app/templates/base.html:7 app/templates/base.html:35
+msgid "QCM Platform"
+msgstr "Plateforme QCM"
+
+#: app/templates/base.html:38
+msgid "Role:"
+msgstr "Rôle :"
+
+#: app/templates/base.html:44
+msgid "Admin Panel"
+msgstr "Panneau d'administration"
+
+#: app/templates/base.html:48
+msgid "User Panel"
+msgstr "Panneau utilisateur"
+
+#: app/templates/base.html:52 app/templates/base.html:56
+msgid "Dashboard"
+msgstr "Tableau de bord"
+
+#: app/templates/base.html:61
+#, fuzzy
+msgid "Messages"
+msgstr "Message"
+
+#: app/templates/base.html:70
+msgid "Logout"
+msgstr "Déconnexion"
+
+#: app/templates/base.html:72 app/templates/login.html:19
+msgid "Sign In"
+msgstr "Se connecter"
+
+#: app/templates/base.html:97
+msgid "Title"
+msgstr "Titre"
+
+#: app/templates/base.html:100 app/templates/messages.html:170
+msgid "Message"
+msgstr "Message"
+
+#: app/templates/base.html:107 app/templates/messages.html:206
+#: app/templates/question_bank.html:462
+msgid "Cancel"
+msgstr "Annuler"
+
+#: app/templates/base.html:108 app/templates/base.html:158
+msgid "Confirm"
+msgstr "Confirmer"
+
+#: app/templates/base.html:154
+msgid "Attention"
+msgstr "Attention"
+
+#: app/templates/base.html:183
+msgid "Please enter a value."
+msgstr "Veuillez saisir une valeur."
+
+#: app/templates/base.html:199
+msgid "Yes"
+msgstr "Oui"
+
+#: app/templates/login.html:6
+msgid "Login"
+msgstr "Connexion"
+
+#: app/templates/login.html:12 app/templates/register.html:14
+msgid "Username"
+msgstr "Nom d'utilisateur"
+
+#: app/templates/login.html:16 app/templates/register.html:18
+msgid "Password"
+msgstr "Mot de passe"
+
+#: app/templates/login.html:22
+msgid "Don't have an account?"
+msgstr "Vous n'avez pas de compte ?"
+
+#: app/templates/login.html:24
+msgid ""
+"Register\n"
+"                    here"
+msgstr ""
+"S'inscrire\n"
+"                    ici"
+
+#: app/templates/messages.html:10
+#, fuzzy
+msgid "Discussions"
+msgstr "Session en Direct"
+
+#: app/templates/messages.html:13
+#, fuzzy
+msgid "New Message"
+msgstr "Message"
+
+#: app/templates/messages.html:54
+msgid "No active discussions."
+msgstr ""
+
+#: app/templates/messages.html:66
+msgid "No Subject"
+msgstr ""
+
+#: app/templates/messages.html:71
+#, fuzzy
+msgid "Delete discussion"
+msgstr "Supprimer le QCM"
+
+#: app/templates/messages.html:73 app/templates/messages.html:209
+#: app/templates/question_bank.html:227 app/templates/question_bank.html:272
+#: app/templates/teacher_dashboard.html:333
+#: app/templates/teacher_dashboard.html:383
+msgid "Delete"
+msgstr "Supprimer"
+
+#: app/templates/messages.html:86
+msgid "You"
+msgstr ""
+
+#: app/templates/messages.html:110
+msgid "Reply"
+msgstr ""
+
+#: app/templates/messages.html:113
+msgid "Write a reply..."
+msgstr ""
+
+#: app/templates/messages.html:117 app/templates/messages.html:177
+msgid "Send"
+msgstr ""
+
+#: app/templates/messages.html:134
+msgid "Select a discussion to start messaging"
+msgstr ""
+
+#: app/templates/messages.html:135
+msgid "Or click \"New Message\" to start a new thread."
+msgstr ""
+
+#: app/templates/messages.html:147
+msgid "New Discussion"
+msgstr ""
+
+#: app/templates/messages.html:154
+msgid "To"
+msgstr ""
+
+#: app/templates/messages.html:157
+msgid "Select Recipient"
+msgstr ""
+
+#: app/templates/messages.html:164
+msgid "Subject"
+msgstr ""
+
+#: app/templates/messages.html:167
+msgid "Brief description..."
+msgstr ""
+
+#: app/templates/messages.html:173
+msgid "Type your message here..."
+msgstr ""
+
+#: app/templates/messages.html:198
+msgid "Delete Conversation?"
+msgstr ""
+
+#: app/templates/messages.html:200
+#, fuzzy
+msgid ""
+"Are you sure you want to delete this conversation? This will only remove "
+"it from your inbox. This\n"
+"            action cannot be undone."
+msgstr "Êtes-vous sûr de vouloir supprimer ce QCM ? Cette action est irréversible."
+
+#: app/templates/question_bank.html:186 app/templates/teacher_dashboard.html:62
+msgid "Question Bank"
+msgstr "Banque de Questions"
+
+#: app/templates/question_bank.html:188
+msgid ""
+"Manage reusable questions,\n"
+"            categories, and tags."
+msgstr ""
+
+#: app/templates/question_bank.html:192
+#, fuzzy
+msgid "Back to Dashboard"
+msgstr "Tableau de bord"
+
+#: app/templates/question_bank.html:202
+msgid "Categories"
+msgstr ""
+
+#: app/templates/question_bank.html:207
+#, fuzzy
+msgid ""
+"All\n"
+"                        Categories"
+msgstr ""
+"Lancer\n"
+"                    Live"
+
+#: app/templates/question_bank.html:226 app/templates/question_bank.html:227
+msgid "Delete Category"
+msgstr ""
+
+#: app/templates/question_bank.html:227
+msgid "Ensure no questions are assigned before deleting. Delete this category?"
+msgstr ""
+
+#: app/templates/question_bank.html:238
+msgid "New category name..."
+msgstr ""
+
+#: app/templates/question_bank.html:242
+msgid "Add Category"
+msgstr ""
+
+#: app/templates/question_bank.html:243 app/templates/question_bank.html:286
+msgid "Add"
+msgstr ""
+
+#: app/templates/question_bank.html:252
+msgid "Tags Filter"
+msgstr ""
+
+#: app/templates/question_bank.html:258
+msgid "All Tags"
+msgstr ""
+
+#: app/templates/question_bank.html:271 app/templates/question_bank.html:272
+#, fuzzy
+msgid "Delete Tag"
+msgstr "Supprimer"
+
+#: app/templates/question_bank.html:272
+msgid "Permanently remove this tag?"
+msgstr ""
+
+#: app/templates/question_bank.html:282
+msgid "New tag name..."
+msgstr ""
+
+#: app/templates/question_bank.html:285
+msgid "Add Tag"
+msgstr ""
+
+#: app/templates/question_bank.html:297
+#, fuzzy
+msgid "Question Pool"
+msgstr "Banque de Questions"
+
+#: app/templates/question_bank.html:300
+#, fuzzy
+msgid "Create Question"
+msgstr "Créer un QCM"
+
+#: app/templates/question_bank.html:312
+#, fuzzy
+msgid "Add Question to Bank"
+msgstr "Banque de Questions"
+
+#: app/templates/question_bank.html:319
+msgid "Category"
+msgstr ""
+
+#: app/templates/question_bank.html:320 app/templates/question_bank.html:334
+msgid "Optional"
+msgstr ""
+
+#: app/templates/question_bank.html:324
+msgid "No Category"
+msgstr ""
+
+#: app/templates/question_bank.html:333
+msgid "Tags"
+msgstr ""
+
+#: app/templates/question_bank.html:348
+msgid ""
+" No\n"
+"                                    tags created yet."
+msgstr ""
+
+#: app/templates/question_bank.html:356
+#, fuzzy
+msgid "Question Text"
+msgstr "Banque de Questions"
+
+#: app/templates/question_bank.html:360
+msgid "Enter the question text here..."
+msgstr ""
+
+#: app/templates/question_bank.html:364
+msgid "Media URL"
+msgstr ""
+
+#: app/templates/question_bank.html:365
+msgid ""
+"Optional -\n"
+"                            Image/Audio/Video Link"
+msgstr ""
+
+#: app/templates/question_bank.html:376
+#, fuzzy
+msgid "Question Type"
+msgstr "Banque de Questions"
+
+#: app/templates/question_bank.html:382
+msgid "Single Choice (Radio)"
+msgstr ""
+
+#: app/templates/question_bank.html:383
+msgid "Multiple Choice (Checkboxes)"
+msgstr ""
+
+#: app/templates/question_bank.html:384
+msgid "True / False"
+msgstr ""
+
+#: app/templates/question_bank.html:385
+msgid "Short Text (Fill in the blank)"
+msgstr ""
+
+#: app/templates/question_bank.html:386
+msgid "Matching Pairs (Drag & Drop)"
+msgstr ""
+
+#: app/templates/question_bank.html:387
+msgid "Ordering Sequence (Drag & Drop)"
+msgstr ""
+
+#: app/templates/question_bank.html:402
+msgid "Answering Options"
+msgstr ""
+
+#: app/templates/question_bank.html:404
+msgid ""
+"Provide the possible answers and indicate which one(s) are correct using "
+"the\n"
+"                                selectors on the left."
+msgstr ""
+
+#: app/templates/question_bank.html:420 app/templates/question_bank.html:605
+#: app/templates/question_bank.html:656 app/templates/question_bank.html:709
+#, fuzzy
+msgid "Option"
+msgstr "PIN"
+
+#: app/templates/question_bank.html:426 app/templates/question_bank.html:712
+msgid "Media URL (Opt)"
+msgstr ""
+
+#: app/templates/question_bank.html:427
+msgid "Optional individual media for this option"
+msgstr ""
+
+#: app/templates/question_bank.html:432 app/templates/question_bank.html:714
+msgid "Matches with..."
+msgstr ""
+
+#: app/templates/question_bank.html:437 app/templates/question_bank.html:607
+#: app/templates/question_bank.html:715
+msgid "Step"
+msgstr ""
+
+#: app/templates/question_bank.html:442 app/templates/question_bank.html:716
+msgid "Remove Option"
+msgstr ""
+
+#: app/templates/question_bank.html:455
+msgid "Add Another Option"
+msgstr ""
+
+#: app/templates/question_bank.html:465
+#, fuzzy
+msgid "Save Question"
+msgstr "Session en Direct"
+
+#: app/templates/question_bank.html:506 app/templates/question_bank.html:513
+#: app/templates/question_bank.html:520
+msgid "Has media attached"
+msgstr ""
+
+#: app/templates/question_bank.html:506 app/templates/question_bank.html:513
+#: app/templates/question_bank.html:520
+#, fuzzy
+msgid "Media"
+msgstr "Modifier"
+
+#: app/templates/question_bank.html:527
+msgid ""
+"Text answer\n"
+"                grading is manual."
+msgstr ""
+
+#: app/templates/question_bank.html:532
+msgid "Delete this question permanently?"
+msgstr ""
+
+#: app/templates/question_bank.html:537
+#, fuzzy
+msgid "Delete Question"
+msgstr "Supprimer le QCM"
+
+#: app/templates/question_bank.html:547
+msgid "No questions found in this category or tag."
+msgstr ""
+
+#: app/templates/question_bank.html:556
+#: app/templates/teacher_dashboard.html:355
+msgid "Prev"
+msgstr "Prédédent"
+
+#: app/templates/question_bank.html:574
+#: app/templates/teacher_dashboard.html:373
+msgid "Next"
+msgstr "Suivant"
+
+#: app/templates/question_bank.html:614
+msgid "A question must have at least 2 options."
+msgstr ""
+
+#: app/templates/question_bank.html:643
+#, fuzzy
+msgid "Item"
+msgstr "Titre"
+
+#: app/templates/question_bank.html:650
+msgid "Correct Sequence Step"
+msgstr ""
+
+#: app/templates/question_bank.html:708
+msgid "Mark correct"
+msgstr ""
+
+#: app/templates/register.html:3
+msgid "Register - QCM Platform"
+msgstr "Inscription - Plateforme QCM"
+
+#: app/templates/register.html:8
+msgid "Student Registration"
+msgstr "Inscription Étudiant"
+
+#: app/templates/register.html:22
+msgid "Confirm Password"
+msgstr "Confirmer le mot de passe"
+
+#: app/templates/register.html:25
+msgid "Register"
+msgstr "S'inscrire"
+
+#: app/templates/register.html:30
+msgid "Already have an account?"
+msgstr "Vous avez déjà un compte ?"
+
+#: app/templates/register.html:31
+msgid "Login here"
+msgstr "Connectez-vous ici"
+
+#: app/templates/student_dashboard.html:7
+msgid "Student Dashboard"
+msgstr "Tableau de bord Étudiant"
+
+#: app/templates/student_dashboard.html:13
+msgid "Join a Quiz"
+msgstr "Rejoindre un QCM"
+
+#: app/templates/student_dashboard.html:14
+msgid "Enter an access code to start a quiz directly."
+msgstr "Entrez un code d'accès pour commencer un QCM directement."
+
+#: app/templates/student_dashboard.html:17
+msgid "e.g. AB12CD34"
+msgstr "ex. AB12CD34"
+
+#: app/templates/student_dashboard.html:21
+#: app/templates/student_dashboard.html:53
+msgid "Join"
+msgstr "Rejoindre"
+
+#: app/templates/student_dashboard.html:27
+msgid "Join a Classroom"
+msgstr "Rejoindre une Classe"
+
+#: app/templates/student_dashboard.html:28
+msgid "Enter a class code provided by your teacher."
+msgstr "Entrez un code de classe fourni par votre professeur."
+
+#: app/templates/student_dashboard.html:31
+msgid "e.g. XY9Z"
+msgstr "ex. XY9Z"
+
+#: app/templates/student_dashboard.html:33
+msgid "Enroll"
+msgstr "S'inscrire"
+
+#: app/templates/student_dashboard.html:43
+msgid "Live Session"
+msgstr "Session en Direct"
+
+#: app/templates/student_dashboard.html:45
+msgid "Enter a 4-digit game PIN to join."
+msgstr "Entrez un PIN à 4 chiffres pour rejoindre."
+
+#: app/templates/student_dashboard.html:49
+msgid "PIN"
+msgstr "PIN"
+
+#: app/templates/student_dashboard.html:61
+msgid "Your Stats"
+msgstr "Vos Statistiques"
+
+#: app/templates/student_dashboard.html:68
+msgid "Attempts"
+msgstr "Tentatives"
+
+#: app/templates/student_dashboard.html:79
+msgid "Avg Score"
+msgstr "Score Moyen"
+
+#: app/templates/student_dashboard.html:87
+msgid "Total XP"
+msgstr "XP Total"
+
+#: app/templates/student_dashboard.html:95
+msgid "Day Streak"
+msgstr "Série de jours"
+
+#: app/templates/student_dashboard.html:102
+#, fuzzy
+msgid "Category Radar"
+msgstr "Radar de Compétences"
+
+#: app/templates/student_dashboard.html:109
+#, fuzzy
+msgid ""
+"Take more categorized quizzes\n"
+"                to see your competency radar."
+msgstr ""
+"Répondez à plus de QCM catégorisés\n"
+"                pour\n"
+"                voir votre radar de compétences."
+
+#: app/templates/student_dashboard.html:117
+msgid "Skill Tag Radar"
+msgstr ""
+
+#: app/templates/student_dashboard.html:124
+#, fuzzy
+msgid ""
+"Take more quizzes with\n"
+"                specific skill tags to see your tag radar."
+msgstr ""
+"Répondez à plus de QCM catégorisés\n"
+"                pour\n"
+"                voir votre radar de compétences."
+
+#: app/templates/student_dashboard.html:132
+msgid "🏆 Your Trophy Case"
+msgstr "🏆 Votre Vitrine des Trophées"
+
+#: app/templates/student_dashboard.html:148
+msgid ""
+"You haven't\n"
+"        earned any\n"
+"        badges yet. Keep taking quizzes to unlock them!"
+msgstr ""
+"Vous n'avez\n"
+"        pas encore gagné\n"
+"        de badges. Continuez à répondre aux QCM pour les débloquer !"
+
+#: app/templates/student_dashboard.html:154
+msgid "Pending Assignments"
+msgstr "Devoirs en Attente"
+
+#: app/templates/student_dashboard.html:161
+msgid "Class:"
+msgstr "Classe :"
+
+#: app/templates/student_dashboard.html:166
+msgid "Take Quiz"
+msgstr "Faire le QCM"
+
+#: app/templates/student_dashboard.html:173
+msgid ""
+"No pending assignments from your\n"
+"        classrooms."
+msgstr ""
+"Aucun devoir assigné dans vos\n"
+"        classes."
+
+#: app/templates/student_dashboard.html:178
+msgid "Your Enrolled Classrooms"
+msgstr "Salles de Classes Inscrites"
+
+#: app/templates/student_dashboard.html:185
+msgid "Teacher:"
+msgstr "Professeur :"
+
+#: app/templates/student_dashboard.html:188
+#: app/templates/teacher_dashboard.html:305
+msgid "Code:"
+msgstr "Code :"
+
+#: app/templates/student_dashboard.html:197
+msgid ""
+"You haven't joined any classrooms\n"
+"        yet."
+msgstr "Vous n'avez pas encore rejoint de classe."
+
+#: app/templates/student_dashboard.html:202
+msgid "Past Submissions"
+msgstr "Soumissions Passées"
+
+#: app/templates/student_dashboard.html:210
+msgid "Quiz Title"
+msgstr "Titre du QCM"
+
+#: app/templates/student_dashboard.html:213
+msgid "Date Taken"
+msgstr "Date"
+
+#: app/templates/student_dashboard.html:216
+msgid "Score"
+msgstr "Score"
+
+#: app/templates/student_dashboard.html:244
+msgid ""
+"You haven't taken any quizzes\n"
+"        yet."
+msgstr "Vous n'avez pas encore passé de QCM."
+
+#: app/templates/student_dashboard.html:271
+#, fuzzy
+msgid "Category Competency"
+msgstr "Compétence (%)"
+
+#: app/templates/student_dashboard.html:316
+msgid "Skill Tag Competency"
+msgstr ""
+
+#: app/templates/teacher_dashboard.html:46
+msgid "'s Dashboard"
+msgstr " - Tableau de bord"
+
+#: app/templates/teacher_dashboard.html:51
+msgid "Download PDF Report"
+msgstr ""
+
+#: app/templates/teacher_dashboard.html:54
+#, fuzzy
+msgid "Import CSV"
+msgstr ""
+"Importer\n"
+"            CSV"
+
+#: app/templates/teacher_dashboard.html:61
+#: app/templates/teacher_dashboard.html:76
+msgid "Classrooms"
+msgstr "Classes"
+
+#: app/templates/teacher_dashboard.html:64
+msgid "Create New Quiz"
+msgstr "Créer un QCM"
+
+#: app/templates/teacher_dashboard.html:72
+msgid "Active QCMs"
+msgstr "QCM Actifs"
+
+#: app/templates/teacher_dashboard.html:80
+#, fuzzy
+msgid "Total Students"
+msgstr "Retours d'Étudiants"
+
+#: app/templates/teacher_dashboard.html:84
+msgid "Total Student Returns"
+msgstr "Retours d'Étudiants"
+
+#: app/templates/teacher_dashboard.html:88
+#, fuzzy
+msgid "Overall Average Score"
+msgstr "Score Moyen"
+
+#: app/templates/teacher_dashboard.html:93
+msgid "At-Risk Students"
+msgstr "Étudiants en Difficulté"
+
+#: app/templates/teacher_dashboard.html:99
+msgid "Attention Required: At-Risk Students"
+msgstr "Attention Requise : Étudiants en Difficulté"
+
+#: app/templates/teacher_dashboard.html:100
+msgid ""
+"Students averaging below 50%\n"
+"        across\n"
+"        your assessments."
+msgstr ""
+"Étudiants ayant une moyenne inférieure à 50%\n"
+"        sur\n"
+"        vos évaluations."
+
+#: app/templates/teacher_dashboard.html:107
+msgid "Student"
+msgstr "Étudiant"
+
+#: app/templates/teacher_dashboard.html:108
+#: app/templates/teacher_dashboard.html:184
+msgid "Average Score"
+msgstr "Score Moyen"
+
+#: app/templates/teacher_dashboard.html:109
+msgid "Total Attempts"
+msgstr "Tentatives"
+
+#: app/templates/teacher_dashboard.html:130
+#, fuzzy
+msgid "Average Score by Quiz"
+msgstr "Score Moyen"
+
+#: app/templates/teacher_dashboard.html:136
+#, fuzzy
+msgid "Submissions per Quiz"
+msgstr "Soumissions Passées"
+
+#: app/templates/teacher_dashboard.html:145
+msgid "Global Skill Tag Competency"
+msgstr ""
+
+#: app/templates/teacher_dashboard.html:201
+#, fuzzy
+msgid "Average"
+msgstr "Score Moyen"
+
+#: app/templates/teacher_dashboard.html:250
+#, fuzzy
+msgid "Average Competency"
+msgstr "Score Moyen"
+
+#: app/templates/teacher_dashboard.html:289
+msgid "Search by title or code..."
+msgstr "Rechercher par titre ou code..."
+
+#: app/templates/teacher_dashboard.html:291
+msgid "Search"
+msgstr "Rechercher"
+
+#: app/templates/teacher_dashboard.html:293
+msgid "Clear"
+msgstr "Effacer"
+
+#: app/templates/teacher_dashboard.html:310
+msgid "s limit"
+msgstr "s limite"
+
+#: app/templates/teacher_dashboard.html:312
+msgid "Qs"
+msgstr "Q"
+
+#: app/templates/teacher_dashboard.html:314
+msgid "runs"
+msgstr "participations"
+
+#: app/templates/teacher_dashboard.html:320
+msgid ""
+"Host\n"
+"                    Live"
+msgstr ""
+"Lancer\n"
+"                    Live"
+
+#: app/templates/teacher_dashboard.html:323
+msgid "Results"
+msgstr "Résultats"
+
+#: app/templates/teacher_dashboard.html:328
+msgid "Edit"
+msgstr "Modifier"
+
+#: app/templates/teacher_dashboard.html:341
+msgid "No quizzes found"
+msgstr "Aucun QCM trouvé"
+
+#: app/templates/teacher_dashboard.html:342
+msgid "This account hasn't created any quizzes yet."
+msgstr "Ce compte n'a pas encore créé de QCM."
+
+#: app/templates/teacher_dashboard.html:345
+msgid "Create First Quiz"
+msgstr "Créer le premier QCM"
+
+#: app/templates/teacher_dashboard.html:381
+msgid "Delete Quiz"
+msgstr "Supprimer le QCM"
+
+#: app/templates/teacher_dashboard.html:382
+msgid "Are you sure you want to delete this quiz? This action cannot be undone."
+msgstr "Êtes-vous sûr de vouloir supprimer ce QCM ? Cette action est irréversible."
+
+#~ msgid "Practice"
+#~ msgstr "S'entraîner"
+

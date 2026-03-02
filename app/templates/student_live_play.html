@@ -1,0 +1,338 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    body {
+        background: #f8fafc;
+        touch-action: manipulation;
+        /* better for mobile tapping */
+    }
+
+    .status-bar {
+        background: white;
+        padding: 1rem 2rem;
+        border-radius: 16px;
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        font-weight: bold;
+    }
+
+    .option-btn {
+        background: var(--surface-color);
+        border: none;
+        padding: 0;
+        border-radius: 16px;
+        font-size: 1.5rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: transform 0.1s, box-shadow 0.1s, filter 0.2s;
+        text-align: center;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 15vh;
+        box-shadow: inset 0 -6px 0 rgba(0, 0, 0, 0.15), 0 4px 6px rgba(0, 0, 0, 0.1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .option-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: inset 0 -6px 0 rgba(0, 0, 0, 0.15), 0 10px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .option-btn:active {
+        transform: translateY(4px);
+        box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .color-0 {
+        background-color: #ef4444;
+    }
+
+    /* Red Triangle */
+    .color-1 {
+        background-color: #3b82f6;
+    }
+
+    /* Blue Diamond */
+    .color-2 {
+        background-color: #eab308;
+    }
+
+    /* Yellow Circle */
+    .color-3 {
+        background-color: #22c55e;
+    }
+
+    /* Green Square */
+
+    .shape-icon {
+        position: absolute;
+        left: 1.5rem;
+        font-size: 3rem;
+        opacity: 0.3;
+    }
+
+    .selected {
+        filter: brightness(1.2);
+        outline: 4px solid var(--text-color);
+        outline-offset: 4px;
+    }
+
+    .waiting-spinner {
+        width: 50px;
+        height: 50px;
+        border: 5px solid rgba(0, 0, 0, 0.1);
+        border-top-color: var(--primary);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 2rem auto;
+    }
+
+    @keyframes spin {
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    @media (max-width: 768px) {
+        h1 {
+            font-size: 2.5rem !important;
+        }
+
+        #options-grid {
+            grid-template-columns: 1fr !important;
+        }
+
+        .option-btn {
+            padding: 1.5rem 1rem;
+            font-size: 1.25rem;
+        }
+
+        #text-answer {
+            font-size: 1.5rem !important;
+        }
+
+        .status-bar {
+            flex-direction: column;
+            gap: 0.5rem;
+            align-items: flex-start;
+        }
+
+        #text-input-area {
+            padding: 1.5rem !important;
+        }
+    }
+</style>
+
+<div id="waiting-screen" class="card text-center"
+    style="padding: 4rem 2rem; margin-top: 2rem; border-top: 8px solid var(--primary);">
+    <h1 style="font-size: 3.5rem; color: var(--text-color); margin-bottom: 0.5rem; font-weight: 900;">You're in!</h1>
+    <p style="font-size: 1.5rem; color: var(--text-muted);">See your nickname on the big screen.</p>
+    <div class="waiting-spinner"></div>
+    <div style="margin-top: 1rem; font-size: 1.25rem; font-weight: bold; color: var(--primary);">Waiting for host to
+        start...</div>
+</div>
+
+<div id="play-screen" style="display: none; padding-bottom: 4rem;">
+    <div class="status-bar">
+        <div style="display: flex; gap: 1rem; align-items: center;">
+            <span style="background: var(--primary); color: white; padding: 0.25rem 0.75rem; border-radius: 999px;">PIN:
+                {{ pin }}</span>
+            <span style="color: var(--text-muted);">👤 {{ name }}</span>
+        </div>
+        <div id="q-counter" style="color: var(--primary); font-size: 1.25rem; font-weight: 900;"></div>
+    </div>
+
+    <!-- Question text is primarily shown on the host screen, but we show it here just in case -->
+    <div class="card"
+        style="margin-bottom: 2rem; text-align: center; padding: 2rem; border-top: 4px solid var(--border-color);">
+        <h2 id="question-text" style="margin: 0; font-size: 1.5rem; color: var(--text-color);"></h2>
+    </div>
+
+    <!-- Options or Text Area -->
+    <div id="options-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <!-- Injected via JS -->
+    </div>
+
+    <div id="text-input-area"
+        style="display: none; text-align: center; background: white; padding: 3rem; border-radius: 16px; box-shadow: var(--shadow-sm);">
+        <input type="text" id="text-answer" class="form-control"
+            style="font-size: 2rem; padding: 1.5rem; text-align: center; max-width: 500px; margin: 0 auto; display: block; border: 4px solid var(--border-color); border-radius: 16px; font-weight: bold;"
+            placeholder="Type your answer...">
+        <button id="submit-text-btn" class="btn btn-primary btn-lg mt-4"
+            style="font-size: 1.5rem; padding: 1rem 3rem; border-radius: 999px; text-transform: uppercase; font-weight: 900; letter-spacing: 0.1em; background: var(--success); border-color: var(--success);">Submit</button>
+    </div>
+
+    <div id="status-message" style="margin-top: 3rem; text-align: center; display: none;">
+        <div class="waiting-spinner" style="margin-bottom: 1rem;"></div>
+        <div style="font-size: 1.5rem; font-weight: bold; color: var(--text-muted);">Waiting for others...</div>
+    </div>
+</div>
+
+<div id="end-screen" class="card text-center"
+    style="display: none; padding: 4rem 2rem; margin-top: 2rem; border-top: 8px solid #fbbf24;">
+    <h1 style="font-size: 4rem; color: #fbbf24; margin-bottom: 1rem;">Quiz Complete!</h1>
+    <p style="font-size: 1.5rem; color: var(--text-color); font-weight: bold;">Look at the main screen for the final
+        podium.</p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+<script>
+    const socket = io();
+    const pin = "{{ pin }}";
+    const playerName = "{{ name }}";
+    let participantId = null;
+    let submitted = false;
+
+    socket.on('connect', () => {
+        socket.emit('player_join', { pin: pin, name: playerName });
+    });
+
+    socket.on('join_success', (data) => {
+        participantId = data.participant_id;
+    });
+
+    socket.on('join_error', (data) => {
+        alert(data.message);
+        window.location.href = '/student'; // Redirect home
+    });
+
+    socket.on('new_question', (data) => {
+        submitted = false;
+        document.getElementById('waiting-screen').style.display = 'none';
+        document.getElementById('play-screen').style.display = 'block';
+        document.getElementById('status-message').style.display = 'none';
+
+        document.getElementById('q-counter').textContent = `Q ${data.index}/${data.total}`;
+        document.getElementById('question-text').innerHTML = data.text;
+
+        // MathJax rerender if available
+        if (typeof MathJax !== 'undefined') {
+            MathJax.typesetPromise();
+        }
+
+        const grid = document.getElementById('options-grid');
+        const textWrapper = document.getElementById('text-input-area');
+
+        grid.innerHTML = '';
+        if (data.type === 'text') {
+            grid.style.display = 'none';
+            textWrapper.style.display = 'block';
+            document.getElementById('text-answer').value = '';
+            document.getElementById('text-answer').focus();
+        } else {
+            textWrapper.style.display = 'none';
+            grid.style.display = 'grid';
+
+            const shapes = ['▲', '◆', '●', '■'];
+            data.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = `option-btn color-${idx % 4}`;
+
+                // Keep the shape icon and the text
+                btn.innerHTML = `<span class="shape-icon">${shapes[idx % 4]}</span><span style="font-size: 1.5rem; padding: 1rem 3rem;">${opt.text}</span>`;
+
+                // Add mathjax support for options
+                if (opt.text.includes('$') || opt.text.includes('\\(')) {
+                    setTimeout(() => { if (typeof MathJax !== 'undefined') MathJax.typesetPromise(); }, 50);
+                }
+
+                btn.onclick = function () {
+                    if (data.type === 'multiple') {
+                        if (!submitted) {
+                            this.classList.toggle('selected');
+                            if (!document.getElementById('multi-submit')) {
+                                const msb = document.createElement('button');
+                                msb.id = 'multi-submit';
+                                msb.className = 'btn btn-primary btn-lg mt-4';
+                                msb.style.gridColumn = 'span 2';
+                                msb.style.padding = '1.5rem';
+                                msb.style.fontSize = '1.5rem';
+                                msb.style.textTransform = 'uppercase';
+                                msb.style.fontWeight = 'bold';
+                                msb.textContent = 'Submit Answers';
+                                msb.onclick = function () {
+                                    if (submitted) return;
+                                    submitted = true;
+                                    const selectedIds = Array.from(document.querySelectorAll('.option-btn.selected')).map(el => el.getAttribute('data-id'));
+                                    submitAnswer(selectedIds);
+                                };
+                                grid.appendChild(msb);
+                            }
+                        }
+                    } else {
+                        if (!submitted) {
+                            submitted = true;
+                            this.classList.add('selected');
+                            submitAnswer(opt.id);
+                        }
+                    }
+                };
+                btn.setAttribute('data-id', opt.id);
+                grid.appendChild(btn);
+            });
+        }
+    });
+
+    document.getElementById('submit-text-btn').addEventListener('click', () => {
+        if (!submitted) {
+            submitted = true;
+            const val = document.getElementById('text-answer').value;
+            submitAnswer(val);
+        }
+    });
+
+    function submitAnswer(ans) {
+        socket.emit('submit_answer', {
+            pin: pin,
+            participant_id: participantId,
+            answer: ans
+        });
+
+        document.getElementById('status-message').style.display = 'block';
+        document.querySelectorAll('.option-btn').forEach(btn => {
+            btn.style.pointerEvents = 'none';
+            if (!btn.classList.contains('selected')) {
+                btn.style.opacity = '0.5';
+            }
+        });
+        document.getElementById('submit-text-btn').disabled = true;
+        document.getElementById('text-answer').disabled = true;
+    }
+
+    socket.on('quiz_end', () => {
+        document.getElementById('play-screen').style.display = 'none';
+        document.getElementById('end-screen').style.display = 'block';
+    });
+
+    socket.on('leaderboard_data', () => {
+        if (!submitted) {
+            submitted = true;
+        }
+        document.getElementById('status-message').style.display = 'block';
+        document.getElementById('status-message').innerHTML = '<div style="font-size: 1.5rem; font-weight: bold; color: var(--error); margin-bottom: 0.5rem;">Time\'s Up!</div><div style="font-size: 1.25rem; color: var(--text-muted); font-weight: bold;">Look at the big screen for the podium.</div>';
+
+        document.querySelectorAll('.option-btn').forEach(btn => {
+            btn.style.pointerEvents = 'none';
+            if (!btn.classList.contains('selected')) {
+                btn.style.opacity = '0.5';
+            }
+        });
+
+        if (document.getElementById('submit-text-btn')) document.getElementById('submit-text-btn').style.display = 'none';
+        if (document.getElementById('text-answer')) document.getElementById('text-answer').disabled = true;
+        if (document.getElementById('multi-submit')) document.getElementById('multi-submit').style.display = 'none';
+    });
+
+    socket.on('session_ended', () => {
+        alert("The host has ended the session.");
+        window.location.href = '/student';
+    });
+</script>
+{% endblock %}

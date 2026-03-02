@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="max-width: 500px; margin: 0 auto; margin-top: 8vh;">
+    <div class="card text-center" style="padding: 3rem;">
+        <h1 style="margin-bottom: 1.5rem;">Join Quiz</h1>
+        <h3 style="color: var(--text-color); font-weight: 600;">{{ quiz.title }}</h3>
+        <p style="margin-bottom: 0.5rem;">{{ quiz.description }}</p>
+        <p style="font-weight: 500; color: var(--text-muted);">⏱️ Duration: {{ quiz.duration_minutes }} Minutes</p>
+
+        <form action="{{ url_for('student.join', access_code=quiz.access_code) }}" method="POST"
+            style="margin-top: 2rem;">
+            <div class="form-group" style="text-align: left;">
+                <label for="name">Enter your Full Name</label>
+                <input type="text" id="name" name="name" required placeholder="e.g. John Doe">
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Start Quiz 🚀</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

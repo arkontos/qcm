@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .kpi-card {
+        background: var(--surface-color);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .kpi-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .kpi-value {
+        font-size: 2rem;
+        font-weight: 600;
+        color: var(--primary);
+        line-height: 1;
+        margin-bottom: 0.5rem;
+    }
+
+    .kpi-label {
+        color: var(--text-muted);
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+</style>
+
+<div class="flex-between mb-4">
+    <h1>{{ 'Admin' if current_user.role == 'admin' else 'User' }} Panel: Global Dashboards</h1>
+    {% if current_user.role == 'admin' %}
+    <a href="{{ url_for('admin.add_user') }}" class="btn btn-primary">+ Add User</a>
+    {% endif %}
+</div>
+
+<div class="kpi-grid">
+    <div class="kpi-card">
+        <span class="kpi-value">{{ global_stats.total_users }}</span>
+        <span class="kpi-label">Total Users</span>
+    </div>
+    <div class="kpi-card">
+        <span class="kpi-value">{{ global_stats.total_teachers }}</span>
+        <span class="kpi-label">Active Teachers</span>
+    </div>
+    <div class="kpi-card">
+        <span class="kpi-value">{{ global_stats.total_quizzes }}</span>
+        <span class="kpi-label">QCMs Designed</span>
+    </div>
+    <div class="kpi-card">
+        <span class="kpi-value">{{ global_stats.total_submissions }}</span>
+        <span class="kpi-label">Tests Written</span>
+    </div>
+</div>
+
+<h2 class="mb-3">Teacher Overview</h2>
+<div class="card p-4 mb-4">
+    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+        <thead>
+            <tr style="border-bottom: 2px solid var(--border-color);">
+                <th style="padding: 1rem 0;">Teacher Name</th>
+                <th style="padding: 1rem 0;">Created QCMs</th>
+                <th style="padding: 1rem 0;">Total Returns</th>
+                <th style="padding: 1rem 0;">Status</th>
+                <th style="padding: 1rem 0; text-align: right;">Access</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for stat in teacher_stats %}
+            <tr style="border-bottom: 1px solid var(--border-color);">
+                <td style="padding: 1rem 0; font-weight: 500;">{{ stat.username }}</td>
+                <td style="padding: 1rem 0;">{{ stat.quiz_count }}</td>
+                <td style="padding: 1rem 0;">{{ stat.submission_count }}</td>
+                <td style="padding: 1rem 0;">
+                    {% if stat.is_active %}
+                    <span
+                        style="background: #ecfdf5; color: var(--success); padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">Active</span>
+                    {% else %}
+                    <span
+                        style="background: #f3f4f6; color: var(--text-muted); padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">Disabled</span>
+                    {% endif %}
+                </td>
+                <td style="padding: 1rem 0; text-align: right;">
+                    <a href="{{ url_for('teacher.user_quizzes', user_id=stat.id) }}" class="btn btn-primary btn-sm">View
+                        QCMs</a>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" style="padding: 2rem 0; text-align: center; color: var(--text-muted);">No teachers data
+                    available.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if current_user.role == 'admin' %}
+<h2 class="mb-3 mt-5">User Management</h2>
+
+<form method="GET" action="" style="margin-bottom: 2rem; display: flex; gap: 1rem;">
+    <input type="text" name="q" placeholder="Search by username or role..." value="{{ search }}"
+        style="flex: 1; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 8px;">
+    <button type="submit" class="btn btn-primary">Search</button>
+    {% if search %}
+    <a href="{{ request.path }}" class="btn btn-secondary" style="display: flex; align-items: center;">Clear</a>
+    {% endif %}
+</form>
+
+<div class="card p-4">
+    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+        <thead>
+            <tr style="border-bottom: 2px solid var(--border-color);">
+                <th style="padding: 1rem 0;">ID</th>
+                <th style="padding: 1rem 0;">Username</th>
+                <th style="padding: 1rem 0;">Role</th>
+                <th style="padding: 1rem 0;">Status</th>
+                <th style="padding: 1rem 0; text-align: right;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr style="border-bottom: 1px solid var(--border-color);">
+                <td style="padding: 1rem 0;">{{ user.id }}</td>
+                <td style="padding: 1rem 0;">{{ user.username }}</td>
+                <td style="padding: 1rem 0; text-transform: capitalize;">{{ user.role }}</td>
+                <td style="padding: 1rem 0;">
+                    {% if user.is_active %}
+                    <span
+                        style="background: #ecfdf5; color: var(--success); padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">Active</span>
+                    {% else %}
+                    <span
+                        style="background: #f3f4f6; color: var(--text-muted); padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">Disabled</span>
+                    {% endif %}
+                </td>
+                <td style="padding: 1rem 0; text-align: right; display: flex; gap: 0.5rem; justify-content: flex-end;">
+                    {% if user.role == 'teacher' %}
+                    <a href="{{ url_for('teacher.user_quizzes', user_id=user.id) }}" class="btn btn-primary btn-sm">View
+                        QCMs</a>
+                    {% endif %}
+                    <a href="{{ url_for('admin.edit_user', id=user.id) }}" class="btn btn-secondary btn-sm">Edit</a>
+                    <form id="delete-user-{{ user.id }}" action="{{ url_for('admin.delete_user', id=user.id) }}"
+                        method="POST">
+                        <button type="button" class="btn btn-secondary btn-sm" style="color: var(--error);"
+                            onclick="confirmDeleteUser('{{ user.id }}', '{{ user.username }}')">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" style="padding: 2rem 0; text-align: center; color: var(--text-muted);">No users
+                    exist.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if pagination.pages > 1 %}
+<div style="display: flex; justify-content: center; gap: 0.5rem; margin-top: 2rem;">
+    {% if pagination.has_prev %}
+    <a href="{{ url_for(request.endpoint, page=pagination.prev_num, q=search, **request.view_args) }}"
+        class="btn btn-secondary">&laquo; Prev</a>
+    {% endif %}
+
+    {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+    {% if page_num %}
+    {% if page_num == pagination.page %}
+    <span class="btn btn-primary">{{ page_num }}</span>
+    {% else %}
+    <a href="{{ url_for(request.endpoint, page=page_num, q=search, **request.view_args) }}" class="btn btn-secondary">{{
+        page_num }}</a>
+    {% endif %}
+    {% else %}
+    <span style="padding: 0.5rem;">...</span>
+    {% endif %}
+    {% endfor %}
+
+    {% if pagination.has_next %}
+    <a href="{{ url_for(request.endpoint, page=pagination.next_num, q=search, **request.view_args) }}"
+        class="btn btn-secondary">Next &raquo;</a>
+    {% endif %}
+</div>
+{% endif %}
+{% endif %}
+
+<script>
+    async function confirmDeleteUser(id, name) {
+        const confirmed = await customConfirm(
+            "Delete User",
+            `Are you sure you want to delete ${name}? All their quizzes will also be deleted.`,
+            "Delete",
+            true
+        );
+        if (confirmed) {
+            document.getElementById('delete-user-' + id).submit();
+        }
+    }
+</script>
+{% endblock %}

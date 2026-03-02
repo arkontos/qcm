@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="flex-between mb-4">
+    <h2>My Classrooms</h2>
+    <a href="{{ url_for('teacher.dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+</div>
+
+<div class="card p-4 mb-4">
+    <h3>Create New Classroom</h3>
+    <form action="{{ url_for('teacher.classrooms') }}" method="POST"
+        style="display:flex; gap:1rem; align-items:flex-end;">
+        <div class="form-group" style="flex:1; margin-bottom:0;">
+            <label>Classroom Name *</label>
+            <input type="text" name="name" class="form-control" placeholder="e.g. Intro to Computer Science" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Create</button>
+    </form>
+</div>
+
+<div class="dashboard-grid" style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));">
+    {% for class in classrooms %}
+    <div class="card p-4">
+        <div class="flex-between mb-2">
+            <h3 style="margin:0;">{{ class.name }}</h3>
+        </div>
+        <p style="margin-bottom: 0.5rem; color: var(--text-color);">
+            Class Code: <span
+                style="font-family:monospace; background:var(--bg-color); padding:0.25rem 0.5rem; border:1px dashed var(--primary); color:var(--primary); font-weight:bold;">{{
+                class.class_code }}</span>
+        </p>
+        <p style="color:var(--text-muted); font-size:0.875rem; margin-bottom: 1.5rem;">Students Enrolled: <strong>{{
+                class.students|length }}</strong></p>
+
+        <div class="flex-between">
+            <a href="{{ url_for('teacher.view_classroom', classroom_id=class.id) }}" class="btn btn-primary"
+                style="padding: 0.5rem 1rem;">Manage Class</a>
+            <form action="{{ url_for('teacher.delete_classroom', classroom_id=class.id) }}" method="POST"
+                onsubmit="return confirm('WARNING: Are you sure you want to delete this classroom? This will NOT delete student accounts or quizzes, but will remove their association with this class.');"
+                style="margin:0;">
+                <button type="submit" class="btn"
+                    style="color:var(--error); background:rgba(239,68,68,0.1); padding: 0.5rem 1rem;">Delete</button>
+            </form>
+        </div>
+    </div>
+    {% else %}
+    <div class="card p-4 text-center" style="grid-column: 1 / -1;">
+        <p style="color: var(--text-muted); margin: 0;">You haven't created any classrooms yet.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

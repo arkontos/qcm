@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div
+    style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: calc(100vh - 200px); text-align: center;">
+    <h1 style="font-size: 3rem; letter-spacing: -0.05em; font-weight: 700; margin-bottom: 0.5rem; margin-top: 2rem;">
+        Assessments. Simplified.</h1>
+    <p style="font-size: 1.125rem; margin-bottom: 3rem; max-width: 500px; color: var(--text-muted);">A clean,
+        lightning-fast platform for creating quizzes and testing knowledge.</p>
+
+    <div class="card" style="padding: 2.5rem; max-width: 640px; width: 100%;">
+        <div style="display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap; text-align: left;">
+            <div style="flex: 1; min-width: 200px;">
+                <h2 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem;">Teacher Access</h2>
+                <p style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 1.5rem;">Manage your quizzes,
+                    track results, and create new assessments.</p>
+                <a href="{{ url_for('teacher.dashboard') }}" class="btn btn-primary" style="width: 100%;">Teacher
+                    Dashboard</a>
+            </div>
+
+            <div style="width: 1px; background: var(--border-color); display: block;"></div>
+
+            <div style="flex: 1; min-width: 200px;">
+                <h2 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem;">Student Access</h2>
+                <p style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 1.5rem;">Have an access code?
+                    Jump
+                    straight into your assessment.</p>
+                <a href="#" onclick="promptQuizId()" class="btn btn-secondary" style="width: 100%;">Join with Code</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function promptQuizId() {
+        const id = await customPrompt("Join Quiz", "Enter your Quiz Access Code...");
+        if (id) {
+            window.location.href = "/student/join/" + id;
+        }
+    }
+</script>
+{% endblock %}

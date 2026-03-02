@@ -1,0 +1,750 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    /* Question Bank Sidebar Styles */
+    .qb-sidebar-list {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 1.5rem 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .qb-category-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.6rem 1rem;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        border: 1px solid transparent;
+        text-decoration: none;
+        color: var(--text-color);
+        background: var(--glass-bg);
+    }
+
+    .qb-category-item:hover {
+        background: rgba(59, 130, 246, 0.05);
+        border-color: rgba(59, 130, 246, 0.2);
+        color: var(--primary);
+        text-decoration: none;
+    }
+
+    .qb-category-item.active {
+        background: rgba(59, 130, 246, 0.1);
+        border-color: var(--primary);
+        color: var(--primary);
+        font-weight: 500;
+        box-shadow: 0 2px 4px rgba(59, 130, 246, 0.1);
+    }
+
+    .qb-delete-btn {
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: var(--error);
+        cursor: pointer;
+        padding: 0.15rem 0.4rem;
+        border-radius: 6px;
+        transition: all 0.2s;
+        opacity: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
+        margin-left: 0.5rem;
+    }
+
+    .qb-delete-btn:hover {
+        color: white;
+        background: var(--error);
+        border-color: var(--error);
+        transform: scale(1.05);
+    }
+
+    .qb-tags-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .qb-tag-pill {
+        display: flex;
+        align-items: center;
+        padding: 0.35rem 0.35rem 0.35rem 1rem;
+        border-radius: 999px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        border: 1px solid var(--border-color);
+        background: var(--glass-bg);
+        color: var(--text-color);
+        text-decoration: none;
+    }
+
+    .qb-tag-pill-all {
+        padding: 0.4rem 1rem;
+        border-radius: 999px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        border: 1px solid var(--border-color);
+        background: var(--glass-bg);
+        color: var(--text-color);
+        text-decoration: none;
+    }
+
+    .qb-tag-pill:hover,
+    .qb-tag-pill-all:hover {
+        border-color: rgba(59, 130, 246, 0.4);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        color: var(--primary);
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+
+    .qb-tag-pill.active,
+    .qb-tag-pill-all.active {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+    }
+
+    .qb-tag-pill.active:hover,
+    .qb-tag-pill-all.active:hover {
+        color: white;
+    }
+
+    .qb-tag-pill.active .qb-delete-btn {
+        color: rgba(255, 255, 255, 0.9);
+        background: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .qb-tag-pill.active .qb-delete-btn:hover {
+        color: white;
+        background: var(--error);
+        border-color: var(--error);
+        transform: scale(1.05);
+    }
+
+    .qb-form-input {
+        flex: 1;
+        font-size: 0.875rem;
+        padding: 0.6rem 0.8rem;
+        border-radius: 6px;
+        border: 1px solid var(--border-color);
+        background: var(--bg-color);
+        color: var(--text-color);
+        transition: border-color 0.2s;
+    }
+
+    .qb-form-input:focus {
+        border-color: var(--primary);
+        outline: none;
+    }
+
+    .qb-tag-icon {
+        font-size: 0.75rem;
+        opacity: 0.6;
+        margin-right: 0.25rem;
+    }
+
+    .qb-tag-checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        cursor: pointer;
+        padding: 0.25rem 0.6rem;
+        border-radius: 4px;
+        border: 1px solid var(--border-color);
+        background: var(--bg-color);
+        transition: border-color 0.2s;
+    }
+
+    .qb-tag-checkbox-text {
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+
+    .qb-opt-item {
+        margin-bottom: 0.25rem;
+    }
+
+    .correct-option {
+        color: var(--success);
+        font-weight: bold;
+    }
+</style>
+
+<div class="flex-between" style="margin-bottom: 2rem;">
+    <div>
+        <h1 style="margin: 0; display: flex; align-items: center; gap: 0.75rem;">
+            <i class="fas fa-database text-primary"></i> {{ _('Question Bank') }}
+        </h1>
+        <p style="color: var(--text-muted); margin: 0.25rem 0 0 0; font-size: 0.9rem;">{{ _('Manage reusable questions,
+            categories, and tags.') }}</p>
+    </div>
+    <a href="{{ url_for('teacher.dashboard') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> {{ _('Back to Dashboard') }}
+    </a>
+</div>
+
+<div class="grid" style="grid-template-columns: 300px 1fr; gap: 2rem;">
+    <!-- LEFT SIDEBAR: Categories & Tags Management -->
+    <div>
+        <div class="card p-4 mb-4" style="border-top: 4px solid var(--primary);">
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.25rem;">
+                <i class="fas fa-folder text-primary"></i>
+                <h3 style="margin: 0; font-size: 1.1rem;">{{ _('Categories') }}</h3>
+            </div>
+            <div class="qb-sidebar-list">
+                <a href="{{ url_for('teacher.question_bank', tag_id=current_tag) }}"
+                    class="qb-category-item {% if not current_cat %}active{% endif %}">
+                    <span><i class="fas fa-globe" style="margin-right: 0.5rem; opacity: 0.7;"></i> {{ _('All
+                        Categories') }}</span>
+                    <span
+                        style="font-size: 0.75rem; background: var(--bg-color); padding: 0.1rem 0.4rem; border-radius: 999px; color: var(--text-muted);">{{
+                        total_questions | default(questions|length) }}</span>
+                </a>
+
+                {% for cat in categories %}
+                <div style="position: relative; display: flex; align-items: center; width: 100%;">
+                    <a href="{{ url_for('teacher.question_bank', category_id=cat.id, tag_id=current_tag) }}"
+                        class="qb-category-item {% if current_cat == cat.id %}active{% endif %}"
+                        style="width: 100%; padding-right: 3rem;">
+                        <span><i class="fas fa-folder-open" style="margin-right: 0.5rem; opacity: 0.7;"></i> {{ cat.name
+                            }}</span>
+                    </a>
+                    <form action="{{ url_for('teacher.question_bank') }}" method="POST"
+                        style="margin: 0; position: absolute; right: 0.25rem;">
+                        <input type="hidden" name="action" value="delete_category">
+                        <input type="hidden" name="category_id" value="{{ cat.id }}">
+                        <button type="button" class="qb-delete-btn" title="{{ _('Delete Category') }}"
+                            onclick="triggerCatDelete(this)">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        <form action="{{ url_for('teacher.question_bank') }}" method="POST" style="margin-top: 0.5rem;">
+            <input type="hidden" name="action" value="add_category">
+            <div style="display: flex; gap: 0.5rem;">
+                <input type="text" name="name" class="qb-form-input" placeholder="{{ _('New category name...') }}"
+                    required>
+                <button type="submit" class="btn btn-primary"
+                    style="padding: 0.6rem 1rem; display: flex; align-items: center; gap: 0.5rem;"
+                    title="{{ _('Add Category') }}">
+                    <i class="fas fa-plus"></i> {{ _('Add') }}
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="card p-4" style="border-top: 4px solid var(--secondary);">
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.25rem;">
+            <i class="fas fa-tags text-secondary"></i>
+            <h3 style="margin: 0; font-size: 1.1rem;">{{ _('Tags Filter') }}</h3>
+        </div>
+
+        <div class="qb-tags-container">
+            <a href="{{ url_for('teacher.question_bank', category_id=current_cat) }}"
+                class="qb-tag-pill-all {% if not current_tag %}active{% endif %}">
+                {{ _('All Tags') }}
+            </a>
+
+            {% for tag in tags %}
+            <div class="qb-tag-pill {% if current_tag == tag.id %}active{% endif %}">
+                <a href="{{ url_for('teacher.question_bank', category_id=current_cat, tag_id=tag.id) }}"
+                    style="text-decoration: none; color: inherit; display: flex; align-items: center; padding-right: 0.25rem;">
+                    <i class="fas fa-hashtag qb-tag-icon" {{ ('style="color: ' ~ (tag.color or 'inherit') ~ ';"')|safe }}></i><span
+                        {{ (' style="color: ' ~ (tag.color or 'inherit') ~ ';"')|safe }}>{{ tag.name }}</span>
+                </a>
+                <form action=' {{ url_for("teacher.question_bank") }}' method="POST" style="margin: 0;">
+                        <input type="hidden" name="action" value="delete_tag">
+                        <input type="hidden" name="tag_id" value="{{ tag.id }}">
+                        <button type="button" class="qb-delete-btn" title="{{ _('Delete Tag') }}"
+                            onclick="triggerTagDelete(this)">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        </form>
+            </div>
+            {% endfor %}
+        </div>
+        <form action="{{ url_for('teacher.question_bank') }}" method="POST">
+            <input type="hidden" name="action" value="add_tag">
+            <div style="display: flex; gap: 0.5rem;">
+                <input type="text" name="name" class="qb-form-input" placeholder="{{ _('New tag name...') }}" required>
+                <button type="submit" class="btn btn-secondary"
+                    style="padding: 0.6rem 1rem; color: var(--secondary); display: flex; align-items: center; gap: 0.5rem;"
+                    title="{{ _('Add Tag') }}">
+                    <i class="fas fa-plus"></i> {{ _('Add') }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- RIGHT MAIN: Questions list and creation -->
+<div>
+    <div class="flex-between" style="align-items: center; margin-bottom: 1.5rem;">
+        <h3 style="margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-list text-primary"></i> {{ _('Question Pool') }} ({{ pagination.total }})
+        </h3>
+        <button class="btn btn-primary" onclick="openAddQuestionModal()">
+            <i class="fas fa-plus"></i> {{ _('Create Question') }}
+        </button>
+    </div>
+    <!-- Modal overlay container for Adding Bank Question -->
+    <div id="addQuestionModal" class="qb-modal"
+        style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); z-index: 1000; align-items: center; justify-content: center; padding: 1rem;">
+        <div class="card p-6 shadow-lg"
+            style="width: 100%; max-width: 850px; max-height: 90vh; overflow-y: auto; position: relative; margin: auto; border-top: 6px solid var(--primary); border-radius: 12px; background: var(--bg-color);">
+            <button class="btn btn-secondary" onclick="closeAddQuestionModal()"
+                style="position: absolute; top: 1rem; right: 1rem; padding: 0.2rem 0.6rem; font-size: 1.25rem;">&times;</button>
+            <div class="flex-between" style="margin-bottom: 1.5rem;">
+                <h3 style="margin: 0; display: flex; align-items: center; gap: 0.5rem;"><i
+                        class="fas fa-plus-circle text-primary"></i> {{ _('Add Question to Bank') }}</h3>
+            </div>
+            <form action="{{ url_for('teacher.question_bank') }}" method="POST">
+                <input type="hidden" name="action" value="add_question">
+
+                <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                    <div class="form-group" style="margin: 0;">
+                        <label style="font-weight: 600; margin-bottom: 0.5rem; display: block;">{{ _('Category') }}
+                            <span style="font-weight: normal; color: var(--text-muted);">({{ _('Optional')
+                                }})</span></label>
+                        <select name="category_id" class="form-control"
+                            style="font-size: 0.95rem; padding: 0.6rem; border-radius: 6px; width: 100%;">
+                            <option value="">-- {{ _('No Category') }} --</option>
+                            {% for cat in categories %}
+                            <option value="{{ cat.id }}" {% if current_cat==cat.id %}selected{% endif %}>{{ cat.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="margin: 0;">
+                        <label style="font-weight: 600; margin-bottom: 0.5rem; display: block;">{{ _('Tags') }} <span
+                                style="font-weight: normal; color: var(--text-muted);">({{ _('Optional')
+                                }})</span></label>
+                        <div
+                            style="display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 6px; background: var(--glass-bg); max-height: 120px; overflow-y: auto; width: 100%;">
+                            {% for tag in tags %}
+                            <label class="qb-tag-checkbox-label">
+                                <input type="checkbox" name="tags" value="{{ tag.id }}" style="margin:0;" {% if
+                                    current_tag==tag.id %}checked{% endif %}>
+                                <span class="qb-tag-checkbox-text" {{
+                                    ('style="color: ' ~ (tag.color or 'var(--text-color)') ~ ';"')|safe }}>#{{
+                                    tag.name }}</span>
+                            </label>
+                            {% endfor %}
+                            {% if not tags %}
+                            <span style="font-size: 0.85rem; color: var(--text-muted); font-style: italic;">{{ _(' No
+                                    tags created yet.') }}</span>
+                                    {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label style="font-weight: 600; margin-bottom: 0.5rem; display: block;">{{ _('Question Text') }}
+                        <span style="color: var(--error);">*</span></label>
+                    <textarea name="text" class="form-control" required
+                        style="font-size: 1.05rem; padding: 0.75rem; border-radius: 6px; min-height: 80px; resize: vertical; width: 100%;"
+                        placeholder="{{ _('Enter the question text here...') }}"></textarea>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label style="font-weight: 600; margin-bottom: 0.5rem; display: block;">{{ _('Media URL') }} <span
+                            style="font-weight: normal; color: var(--text-muted); font-size: 0.85rem;">({{ _('Optional -
+                            Image/Audio/Video Link') }})</span></label>
+                    <div
+                        style="display: flex; align-items: center; gap: 0.75rem; background: var(--glass-bg); padding: 0.5rem 0.75rem; border-radius: 6px; border: 1px solid var(--border-color);">
+                        <i class="fas fa-link" style="color: var(--text-muted); font-size: 1.1rem;"></i>
+                        <input type="url" name="media_url" class="form-control" placeholder="https://..."
+                            style="flex: 1; border: none; background: transparent; padding: 0; box-shadow: none;">
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label style="font-weight: 600; margin-bottom: 0.5rem; display: block;">{{ _('Question Type') }}
+                        <span style="color: var(--error);">*</span></label>
+                    <div style="position: relative;">
+                        <select name="question_type" class="form-control" id="bank_q_type"
+                            onchange="toggleBankOptions()"
+                            style="font-weight: 500; font-size: 1rem; padding: 0.75rem; border-radius: 6px; appearance: none; width: 100%;">
+                            <option value="single">{{ _('Single Choice (Radio)') }}</option>
+                            <option value="multiple">{{ _('Multiple Choice (Checkboxes)') }}</option>
+                            <option value="true_false">{{ _('True / False') }}</option>
+                            <option value="text">{{ _('Short Text (Fill in the blank)') }}</option>
+                            <option value="matching">{{ _('Matching Pairs (Drag & Drop)') }}</option>
+                            <option value="ordering">{{ _('Ordering Sequence (Drag & Drop)') }}</option>
+                        </select>
+                        <i class="fas fa-chevron-down"
+                            style="position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--text-muted);"></i>
+                    </div>
+                </div>
+
+                <div id="bank_q_options"
+                    style="border-top: 4px solid var(--primary); padding-top: 1.5rem; margin-bottom: 1.5rem; background: var(--glass-bg); padding: 1.5rem; border-radius: 8px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
+                    <div style="display: flex; align-items: flex-start; gap: 0.75rem; margin-bottom: 1rem;">
+                        <div
+                            style="background: rgba(59, 130, 246, 0.1); color: var(--primary); padding: 0.5rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px;">
+                            <i class="fas fa-list-ul"></i>
+                        </div>
+                        <div>
+                            <h4 style="margin: 0 0 0.25rem 0; font-size: 1.05rem;">{{ _('Answering Options') }}</h4>
+                            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">
+                                {{ _('Provide the possible answers and indicate which one(s) are correct using the
+                                selectors on the left.') }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div id="bank_opts_container" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        <!-- Default 2 options -->
+                        {% for i in range(2) %}
+                        <div style="display: flex; gap: 0.75rem; align-items: center; background: var(--bg-color); padding: 0.75rem; border-radius: 6px; border: 1px solid var(--border-color);"
+                            class="bank-opt-row">
+                            <input type="radio" name="correct" value="{{ i }}"
+                                style="cursor: pointer; width: 1.25rem; height: 1.25rem; accent-color: var(--success);"
+                                class="bank-correct-cb" {% if i==0 %}required{% endif %} title="Mark correct">
+
+                            <input type="text" name="options[]" class="form-control bank-opt-primary" required
+                                placeholder="{{ _('Option') }} {{ i + 1 }}" style="flex: 2; padding: 0.6rem;">
+
+                            <div style="position: relative; flex: 1; min-width: 120px;">
+                                <i class="fas fa-image"
+                                    style="position: absolute; left: 0.6rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.8rem;"></i>
+                                <input type="text" name="options_media[]" class="form-control form-control-sm"
+                                    placeholder="{{ _('Media URL (Opt)') }}"
+                                    title="{{ _('Optional individual media for this option') }}"
+                                    style="padding: 0.6rem 0.6rem 0.6rem 2rem; font-size: 0.85rem; width: 100%;">
+                            </div>
+
+                            <input type="text" class="form-control bank-opt-secondary" name="matches[]"
+                                placeholder="{{ _('Matches with...') }}"
+                                style="display: none; flex: 2; padding: 0.6rem;">
+
+                            <span class="bank-order-label"
+                                style="display: none; color: var(--primary); font-size: 0.85rem; font-weight: 600; background: rgba(59, 130, 246, 0.1); padding: 0.3rem 0.75rem; border-radius: 999px;">{{
+                                _('Step') }}
+                                {{ i + 1 }}</span>
+
+                            <button type="button" class="btn"
+                                style="padding: 0.4rem; border-radius: 6px; color: var(--error); background: rgba(239, 68, 68, 0.1); transition: all 0.2s;"
+                                onclick="removeBankOption(this)" title="{{ _('Remove Option') }}"
+                                onmouseover="this.style.background=' #ef4444'; this.style.color='white' ;"
+                                onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'; this.style.color='var(--error)';">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <button type="button" class="btn btn-secondary"
+                        style="margin-top: 1rem; padding: 0.6rem 1rem; font-size: 0.9rem; border: 1px dashed var(--border-color); background: transparent; width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: background 0.2s;"
+                        onclick="addBankOption()" onmouseover="this.style.background='var(--glass-bg)';"
+                        onmouseout="this.style.background='transparent';">
+                        <i class="fas fa-plus-circle" style="color: var(--primary);"></i> {{ _('Add Another Option') }}
+                    </button>
+                </div>
+
+                <div
+                    style="display: flex; gap: 1rem; justify-content: flex-end; padding-top: 1.5rem; border-top: 1px solid var(--border-color); margin-top: 2rem;">
+                    <button type="button" class="btn btn-secondary" style="padding: 0.75rem 1.5rem; font-weight: 500;"
+                        onclick="closeAddQuestionModal()">{{ _('Cancel') }}</button>
+                    <button type="submit" class="btn btn-primary"
+                        style="padding: 0.75rem 2rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
+                        <i class="fas fa-save"></i> {{ _('Save Question') }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+{% for q in questions %}
+<div class="card p-4 mb-4" style="border-left: 4px solid var(--primary);">
+    <div class="flex-between" style="align-items: flex-start;">
+        <div>
+            <h4 style="margin: 0 0 0.5rem 0;">{{ q.text }}</h4>
+            <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap;">
+                <span
+                    style="font-size: 0.75rem; background: var(--bg-color); padding: 0.2rem 0.5rem; border-radius: 4px; color: var(--text-muted); border: 1px solid var(--border-color);">{{
+                    q.question_type }}</span>
+                {% if q.category_id %}
+                {% set qc_list = categories|selectattr('id', 'equalto', q.category_id)|list %}
+                {% if qc_list %}
+                <span
+                    style="font-size: 0.75rem; background: rgba(59, 130, 246, 0.1); color: var(--primary); padding: 0.2rem 0.5rem; border-radius: 4px;">{{
+                    qc_list[0].name }}</span>
+                {% endif %}
+                {% endif %}
+                {% for t in q.tags %}
+                <span
+                    style="font-size: 0.75rem; background: var(--bg-color); color: var(--text-color); padding: 0.2rem 0.5rem; border-radius: 999px; border: 1px solid var(--border-color);">#{{
+                    t.name }}</span>
+                {% endfor %}
+            </div>
+
+            {% if q.question_type != 'text' %}
+            <ul style="margin: 0; padding-left: 1.5rem; color: var(--text-muted); font-size: 0.875rem;">
+                {% for opt in q.options %}
+                {% if q.question_type == 'matching' %}
+                {% set parts = opt.text.split('::|::') %}
+                <li style="margin-bottom: 0.25rem;">
+                    <strong>{{ parts[0] }}</strong> ➔ {{ parts[1] if parts|length > 1 else '' }}
+                    {% if opt.media_url %}<span style="font-size:0.7rem; color:var(--primary);"
+                        title="{{ _('Has media attached') }}"><i class="fas fa-paperclip"></i> {{ _('Media') }}</span>{%
+                    endif %}
+                </li>
+                {% elif q.question_type == 'ordering' %}
+                <li style="margin-bottom: 0.25rem;">
+                    {{ loop.index }}. <strong>{{ opt.text }}</strong>
+                    {% if opt.media_url %}<span style="font-size:0.7rem; color:var(--primary);"
+                        title="{{ _('Has media attached') }}"><i class="fas fa-paperclip"></i> {{ _('Media') }}</span>{%
+                    endif %}
+                </li>
+                {% else %}
+                <li class="qb-opt-item {% if opt.is_correct %}correct-option{% endif %}">
+                    {{ opt.text }} {% if opt.is_correct %}✓{% endif %}
+                    {% if opt.media_url %}<span style="font-size:0.7rem; color:var(--primary);"
+                        title="{{ _('Has media attached') }}"><i class="fas fa-paperclip"></i> {{ _('Media') }}</span>{%
+                    endif %}
+                </li>
+                {% endif %}
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p style="font-size: 0.875rem; color: var(--text-muted); font-style: italic; margin:0;">{{ _('Text answer
+                grading is manual.') }}</p>
+            {% endif %}
+        </div>
+        <form action="{{ url_for('teacher.question_bank') }}" method="POST"
+            onsubmit="return confirmQuestionDelete(this);" style="margin:0;">
+            <input type="hidden" name="action" value="delete_question">
+            <input type="hidden" name="question_id" value="{{ q.id }}">
+            <button type="submit" class="btn"
+                style="background: rgba(239, 68, 68, 0.1); color: var(--error); padding: 0.5rem; transition: background 0.2s;"
+                title="{{ _('Delete Question') }}">
+                <i class="fas fa-trash"></i>
+            </button>
+        </form>
+    </div>
+</div>
+{% else %}
+<div
+    style="text-align: center; padding: 3rem; color: var(--text-muted); background: var(--glass-bg); border-radius: 8px;">
+    <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+    <p>{{ _('No questions found in this category or tag.') }}</p>
+</div>
+{% endfor %}
+
+<!-- Pagination Controls -->
+{% if pagination.pages > 1 %}
+<div style="display: flex; justify-content: center; gap: 0.5rem; margin-top: 2rem;">
+    {% if pagination.has_prev %}
+    <a href="{{ url_for('teacher.question_bank', page=pagination.prev_num, category_id=current_cat, tag_id=current_tag) }}"
+        class="btn btn-secondary"><i class="fas fa-chevron-left"></i> {{ _('Prev') }}</a>
+    {% endif %}
+
+    {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+    {% if p %}
+    {% if p == pagination.page %}
+    <span class="btn btn-primary" style="pointer-events: none;">{{ p }}</span>
+    {% else %}
+    <a href="{{ url_for('teacher.question_bank', page=p, category_id=current_cat, tag_id=current_tag) }}"
+        class="btn btn-secondary">{{ p }}</a>
+    {% endif %}
+    {% else %}
+    <span style="padding: 0.5rem; color: var(--text-muted);">...</span>
+    {% endif %}
+    {% endfor %}
+
+    {% if pagination.has_next %}
+    <a href="{{ url_for('teacher.question_bank', page=pagination.next_num, category_id=current_cat, tag_id=current_tag) }}"
+        class="btn btn-secondary">{{ _('Next') }} <i class="fas fa-chevron-right"></i></a>
+    {% endif %}
+</div>
+{% endif %}
+
+</div>
+
+<script>
+    function openAddQuestionModal() {
+        document.getElementById('addQuestionModal').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeAddQuestionModal() {
+        document.getElementById('addQuestionModal').style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+
+    // Close modal if clicked outside the card
+    document.getElementById('addQuestionModal').addEventListener('click', function (e) {
+        if (e.target === this) {
+            closeAddQuestionModal();
+        }
+    });
+    function reindexBankOptions() {
+        const container = document.getElementById('bank_opts_container');
+        const rows = container.querySelectorAll('.bank-opt-row');
+        rows.forEach((row, index) => {
+            const cb = row.querySelector('.bank-correct-cb');
+            if (cb) cb.value = index;
+            const primary = row.querySelector('.bank-opt-primary');
+            if (primary) primary.placeholder = `${"{{ _('Option') }}"} ${index + 1}`;
+            const orderLabel = row.querySelector('.bank-order-label');
+            if (orderLabel) orderLabel.innerText = `${"{{ _('Step') }}"} ${index + 1}`;
+        });
+    }
+
+    function removeBankOption(btn) {
+        const container = document.getElementById('bank_opts_container');
+        if (container.querySelectorAll('.bank-opt-row:not([style*="display: none"])').length <= 2) {
+            showToast("{{ _('A question must have at least 2 options.') }}", 'error');
+            return;
+        }
+        btn.closest('.bank-opt-row').remove();
+        reindexBankOptions();
+    }
+
+    function toggleBankOptions() {
+        const type = document.getElementById('bank_q_type').value;
+        const container = document.getElementById('bank_q_options');
+        const rows = document.querySelectorAll('.bank-opt-row');
+
+        if (type === 'text') {
+            container.style.display = 'none';
+        } else {
+            container.style.display = 'block';
+
+            rows.forEach((row, index) => {
+                const cb = row.querySelector('.bank-correct-cb');
+                const primary = row.querySelector('.bank-opt-primary');
+                const secondary = row.querySelector('.bank-opt-secondary');
+                const label = row.querySelector('.bank-order-label');
+
+                if (type === 'matching') {
+                    if (cb) cb.style.display = 'none';
+                    if (cb) cb.removeAttribute('required');
+                    if (secondary) secondary.style.display = 'block';
+                    if (secondary) secondary.required = true;
+                    if (label) label.style.display = 'none';
+                    if (primary) primary.placeholder = `${"{{ _('Item') }}"} ${index + 1}`;
+                } else if (type === 'ordering') {
+                    if (cb) cb.style.display = 'none';
+                    if (cb) cb.removeAttribute('required');
+                    if (secondary) secondary.style.display = 'none';
+                    if (secondary) secondary.removeAttribute('required');
+                    if (label) label.style.display = 'inline-block';
+                    if (primary) primary.placeholder = `${"{{ _('Correct Sequence Step') }}"} ${index + 1}`;
+                } else {
+                    if (cb) cb.style.display = 'block';
+                    if (secondary) secondary.style.display = 'none';
+                    if (secondary) secondary.removeAttribute('required');
+                    if (label) label.style.display = 'none';
+                    if (primary) primary.placeholder = `${"{{ _('Option') }}"} ${index + 1}`;
+
+                    if (type === 'multiple') {
+                        if (cb) cb.type = 'checkbox';
+                        if (cb) cb.name = 'correct[]';
+                        if (cb) cb.removeAttribute('required');
+                    } else if (type === 'single' || type === 'true_false') {
+                        if (cb) cb.type = 'radio';
+                        if (cb) cb.name = 'correct';
+                        if (cb) {
+                            if (index === 0) cb.required = true;
+                            else cb.removeAttribute('required');
+                        }
+                    }
+                }
+            });
+
+            if (type === 'true_false') {
+                rows.forEach((row, idx) => {
+                    const primary = row.querySelector('.bank-opt-primary');
+                    if (idx < 2) {
+                        row.style.display = 'flex';
+                        if (primary) {
+                            primary.value = (idx === 0) ? 'True' : 'False';
+                            primary.readOnly = true;
+                        }
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            } else {
+                rows.forEach(row => {
+                    row.style.display = 'flex';
+                    const primary = row.querySelector('.bank-opt-primary');
+                    if (primary && primary.readOnly && (primary.value === 'True' || primary.value === 'False')) {
+                        primary.value = '';
+                        primary.readOnly = false;
+                    }
+                });
+            }
+        }
+    }
+
+    function addBankOption() {
+        const container = document.getElementById('bank_opts_container');
+        const idx = container.children.length;
+
+        const row = document.createElement('div');
+        row.className = 'bank-opt-row';
+        row.style.cssText = 'display: flex; gap: 0.75rem; align-items: center; background: var(--bg-color); padding: 0.75rem; border-radius: 6px; border: 1px solid var(--border-color);';
+
+        row.innerHTML = `
+            <input type="radio" name="correct" value="${idx}" style="cursor: pointer; width: 1.25rem; height: 1.25rem; accent-color: var(--success);" class="bank-correct-cb" title="{{ _('Mark correct') }}">
+            <input type="text" name="options[]" class="form-control bank-opt-primary" required placeholder="${"{{ _('Option') }}"} ${idx + 1}" style="flex: 2; padding: 0.6rem;">
+            <div style="position: relative; flex: 1; min-width: 120px;">
+                <i class="fas fa-image" style="position: absolute; left: 0.6rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.8rem;"></i>
+                <input type="text" name="options_media[]" class="form-control form-control-sm" placeholder="{{ _('Media URL (Opt)') }}" style="padding: 0.6rem 0.6rem 0.6rem 2rem; font-size: 0.85rem; width: 100%;">
+            </div>
+            <input type="text" class="form-control bank-opt-secondary" name="matches[]" placeholder="{{ _('Matches with...') }}" style="display: none; flex: 2; padding: 0.6rem;">
+            <span class="bank-order-label" style="display: none; color: var(--primary); font-size: 0.85rem; font-weight: 600; background: rgba(59, 130, 246, 0.1); padding: 0.3rem 0.75rem; border-radius: 999px;">${"{{ _('Step') }}"} ${idx + 1}</span>
+            <button type="button" class="btn" style="padding: 0.4rem; color: var(--error); background: rgba(239, 68, 68, 0.1); border-radius: 6px; transition: all 0.2s;" onclick="removeBankOption(this)" title="{{ _('Remove Option') }}" onmouseover="this.style.background='#ef4444'; this.style.color='white';" onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'; this.style.color='var(--error)';">
+                <i class="fas fa-trash-alt"></i>
+            </button>
+        `;
+        container.appendChild(row);
+        reindexBankOptions();
+        toggleBankOptions();
+    }
+
+    function triggerCatDelete(btn) {
+        customConfirm(
+            "{{ _('Delete Category')|escape }}",
+            "{{ _('Ensure no questions are assigned before deleting. Delete this category?')|escape }}",
+            "{{ _('Delete')|escape }}",
+            true
+        ).then(res => { if (res) btn.closest('form').submit(); });
+    }
+
+    function triggerTagDelete(btn) {
+        customConfirm(
+            "{{ _('Delete Tag')|escape }}",
+            "{{ _('Permanently remove this tag?')|escape }}",
+            "{{ _('Delete')|escape }}",
+            true
+        ).then(res => { if (res) btn.closest('form').submit(); });
+    }
+
+    function confirmQuestionDelete(form) {
+        return confirm("{{ _('Delete this question permanently?')|escape }}");
+    }
+
+    // Init state
+    toggleBankOptions();
+</script>
+{% endblock %}

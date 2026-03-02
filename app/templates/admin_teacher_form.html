@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary btn-sm">&larr; Back to Admin</a>
+</div>
+
+<div style="max-width: 500px; margin: 0 auto;">
+    <div class="card p-4">
+        <h2 class="mb-4">{{ action }} User</h2>
+
+
+
+        <form method="POST">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" value="{{ user.username if user else '' }}" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password {% if user %}(Leave blank to keep current){% endif %}</label>
+                <input type="password" id="password" name="password" {% if not user %}required{% endif %}>
+            </div>
+            <div class="form-group">
+                <label for="role">Role</label>
+                <select id="role" name="role">
+                    <option value="teacher" {% if user and user.role=='teacher' %}selected{% endif %}>Teacher</option>
+                    <option value="admin" {% if user and user.role=='admin' %}selected{% endif %}>Admin</option>
+                    <option value="secretary" {% if user and user.role=='secretary' %}selected{% endif %}>Secretary
+                    </option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="is_active">Status</label>
+                <select id="is_active" name="is_active">
+                    <option value="true" {% if teacher and teacher.is_active %}selected{% endif %}>Enabled</option>
+                    <option value="false" {% if teacher and not teacher.is_active %}selected{% endif %}>Disabled
+                    </option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Save Teacher</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

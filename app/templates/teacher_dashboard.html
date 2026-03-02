@@ -1,0 +1,391 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .kpi-card {
+        background: var(--surface-color);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .kpi-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .kpi-value {
+        font-size: 2rem;
+        font-weight: 600;
+        color: var(--primary);
+        line-height: 1;
+        margin-bottom: 0.5rem;
+    }
+
+    .kpi-label {
+        color: var(--text-muted);
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+</style>
+
+<div class="flex-between mb-4">
+    <h1>{{ target_user.username }}{{ _("'s Dashboard") }}</h1>
+    {% if current_user.role != 'secretary' %}
+    <div class="action-buttons" style="display: flex; gap: 1rem;">
+        <button type="button" class="btn btn-secondary" onclick="window.print()"
+            style="border-color: var(--primary); color: var(--primary);">
+            <i class="fas fa-file-pdf"></i> {{ _('Download PDF Report') }}
+        </button>
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('csv-upload').click()">{{
+            _('Import CSV') }}</button>
+        <form id="csv-form"
+            action="{{ url_for('teacher.import_csv', user_id=target_user.id) if target_user.id != current_user.id else url_for('teacher.import_csv') }}"
+            method="POST" enctype="multipart/form-data" style="display: none;">
+            <input type="file" id="csv-upload" name="csv_file" accept=".csv"
+                onchange="document.getElementById('csv-form').submit()">
+        </form>
+        <a href="{{ url_for('teacher.classrooms') }}" class="btn btn-secondary">{{ _('Classrooms') }}</a>
+        <a href="{{ url_for('teacher.question_bank') }}" class="btn btn-secondary">{{ _('Question Bank') }}</a>
+        <a href="{{ url_for('teacher.add_quiz', user_id=target_user.id) if target_user.id != current_user.id else url_for('teacher.add_quiz') }}"
+            class="btn btn-primary">{{ _('Create New Quiz') }}</a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="kpi-grid">
+    <div class="kpi-card">
+        <span class="kpi-value">{{ total_quizzes }}</span>
+        <span class="kpi-label">{{ _('Active QCMs') }}</span>
+    </div>
+    <div class="kpi-card">
+        <span class="kpi-value">{{ total_classrooms }}</span>
+        <span class="kpi-label">{{ _('Classrooms') }}</span>
+    </div>
+    <div class="kpi-card">
+        <span class="kpi-value">{{ total_students }}</span>
+        <span class="kpi-label">{{ _('Total Students') }}</span>
+    </div>
+    <div class="kpi-card">
+        <span class="kpi-value">{{ total_subs }}</span>
+        <span class="kpi-label">{{ _('Total Student Returns') }}</span>
+    </div>
+    <div class="kpi-card">
+        <span class="kpi-value">{{ overall_average }}%</span>
+        <span class="kpi-label">{{ _('Overall Average Score') }}</span>
+    </div>
+    <div class="kpi-card" style="border-left: 4px solid var(--error);">
+        <span class="kpi-value" style="color: var(--error);">{{ at_risk_students|length if at_risk_students else 0
+            }}</span>
+        <span class="kpi-label">{{ _('At-Risk Students') }}</span>
+    </div>
+</div>
+
+{% if at_risk_students %}
+<div class="card mb-4" style="border: 1px solid var(--error); background: rgba(239, 68, 68, 0.02);">
+    <h3 style="color: var(--error); margin-top: 0;">{{ _('Attention Required: At-Risk Students') }}</h3>
+    <p style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 1rem;">{{ _('Students averaging below 50%
+        across
+        your assessments.') }}</p>
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.875rem;">
+            <thead>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <th style="padding: 0.5rem 0;">{{ _('Student') }}</th>
+                    <th style="padding: 0.5rem 0;">{{ _('Average Score') }}</th>
+                    <th style="padding: 0.5rem 0;">{{ _('Total Attempts') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in at_risk_students %}
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="padding: 0.5rem 0; font-weight: 500;">{{ item.student.username }}</td>
+                    <td style="padding: 0.5rem 0; color: var(--error); font-weight: bold;">{{ item.average }}%</td>
+                    <td style="padding: 0.5rem 0; color: var(--text-muted);">{{ item.attempts }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{% if chart_data %}
+<div
+    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
+    <div class="card p-4">
+        <h3 style="margin-top: 0; margin-bottom: 1rem;">{{ _('Average Score by Quiz') }}</h3>
+        <div style="position: relative; height: 300px; width: 100%;">
+            <canvas id="quizAvgChart"></canvas>
+        </div>
+    </div>
+    <div class="card p-4">
+        <h3 style="margin-top: 0; margin-bottom: 1rem;">{{ _('Submissions per Quiz') }}</h3>
+        <div style="position: relative; height: 300px; width: 100%;">
+            <canvas id="quizSubChart"></canvas>
+        </div>
+    </div>
+</div>
+
+{% if tag_radar_data and tag_radar_data.labels %}
+<div class="card p-4" style="margin-bottom: 2rem;">
+    <h3 style="margin-top: 0; margin-bottom: 1rem;">{{ _('Global Skill Tag Competency') }}</h3>
+    <div style="position: relative; height: 350px; width: 100%; display: flex; justify-content: center;">
+        <canvas id="globalTagRadar"></canvas>
+    </div>
+</div>
+{% endif %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<div id="chart-data-container" style="display: none;">
+    <script id="dashboard-chart-data" type="application/json">
+        [
+            {% for cd in chart_data %}
+            { "title": "{{ cd.title|replace('"', '\\"') }}", "average": {{ cd.average }}, "submissions": {{ cd.submissions }} }{% if not loop.last %},{% endif %}
+            {% endfor %}
+        ]
+    </script>
+
+    {% if tag_radar_data and tag_radar_data.labels %}
+    <script id="tag-labels-data" type="application/json">{{ tag_radar_data.labels | tojson | safe }}</script>
+    <script id="tag-scores-data" type="application/json">{{ tag_radar_data.scores | tojson | safe }}</script>
+    <div id="has-tag-data" data-exists="true"></div>
+    {% endif %}
+</div>
+<script>
+    const chartDataElement = document.getElementById('dashboard-chart-data');
+    const chartData = chartDataElement ? JSON.parse(chartDataElement.textContent) : [];
+
+    if (chartData.length > 0) {
+        const labels = chartData.map(d => d.title.length > 20 ? d.title.substring(0, 20) + '...' : d.title);
+        const averages = chartData.map(d => d.average);
+        const submissions = chartData.map(d => d.submissions);
+
+        // Average Chart
+        const ctxAvg = document.getElementById('quizAvgChart').getContext('2d');
+        new Chart(ctxAvg, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: '{{ _("Average Score") }} (%)',
+                    data: averages,
+                    backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                    borderColor: 'rgba(59, 130, 246, 1)',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true, max: 100 } },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            title: (context) => chartData[context[0].dataIndex].title,
+                            label: (context) => `{{ _("Average") }}: ${context.raw}%`
+                        }
+                    }
+                }
+            }
+        });
+
+        // Submissions Chart
+        const backgroundColors = [
+            'rgba(16, 185, 129, 0.7)', 'rgba(59, 130, 246, 0.7)', 'rgba(245, 158, 11, 0.7)',
+            'rgba(239, 68, 68, 0.7)', 'rgba(139, 92, 246, 0.7)', 'rgba(236, 72, 153, 0.7)'
+        ];
+
+        const ctxSub = document.getElementById('quizSubChart').getContext('2d');
+        new Chart(ctxSub, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: submissions,
+                    backgroundColor: backgroundColors.slice(0, submissions.length).concat(Array(Math.max(0, submissions.length - 6)).fill('rgba(156, 163, 175, 0.7)')),
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '60%',
+                plugins: {
+                    legend: { position: 'right' },
+                    tooltip: {
+                        callbacks: {
+                            title: (context) => chartData[context[0].dataIndex].title,
+                        }
+                    }
+                }
+            }
+        });
+
+        // Tag Radar Chart (if exists)
+        const hasTagData = document.getElementById('has-tag-data');
+        if (hasTagData) {
+            const tagLabelsRaw = document.getElementById('tag-labels-data');
+            const tagScoresRaw = document.getElementById('tag-scores-data');
+
+            const tagCtx = document.getElementById('globalTagRadar').getContext('2d');
+            const tagPieData = {
+                labels: JSON.parse(tagLabelsRaw.textContent),
+                datasets: [{
+                    label: '{{ _("Average Competency") }} (%)',
+                    data: JSON.parse(tagScoresRaw.textContent),
+                    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                    borderColor: 'rgba(16, 185, 129, 1)',
+                    pointBackgroundColor: 'rgba(16, 185, 129, 1)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgba(16, 185, 129, 1)',
+                    borderWidth: 2
+                }]
+            };
+
+            const tagConfig = {
+                type: 'radar',
+                data: tagPieData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { display: true, color: 'rgba(0,0,0,0.05)' },
+                            grid: { color: 'rgba(0,0,0,0.05)' },
+                            suggestedMin: 0,
+                            suggestedMax: 100,
+                            ticks: { stepSize: 20, backdropColor: 'transparent' }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                },
+            };
+            new Chart(tagCtx, tagConfig);
+        }
+    }
+</script>
+{% endif %}
+
+<form method="GET" action="" style="margin-bottom: 2rem; display: flex; gap: 1rem;">
+    <input type="text" name="q" placeholder="{{ _('Search by title or code...') }}" value="{{ search }}"
+        style="flex: 1; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 8px;">
+    <button type="submit" class="btn btn-primary">{{ _('Search') }}</button>
+    {% if search %}
+    <a href="{{ request.path }}" class="btn btn-secondary" style="display: flex; align-items: center;">{{ _('Clear')
+        }}</a>
+    {% endif %}
+</form>
+
+<div class="dashboard-grid mt-4">
+    {% for quiz in quizzes %}
+    <div class="card quiz-card" style="display: flex; flex-direction: column;">
+        <div class="flex-between">
+            <h3 style="margin-bottom: 0;">{{ quiz.title }}</h3>
+            <span
+                style="background: #f3f4f6; padding: 0.25rem 0.5rem; border-radius: 4px; font-family: monospace; font-size: 0.875rem; color: var(--primary); border: 1px solid var(--border-color);">{{
+                _('Code:') }}
+                {{ quiz.access_code }}</span>
+        </div>
+        <p style="font-size: 0.875rem; margin-top: 0.5rem;">{{ quiz.description }}</p>
+        <div class="quiz-meta">
+            <span>{{ quiz.time_per_question }}{{ _('s limit') }}</span>
+            <span>&bull;</span>
+            <span>{{ quiz.questions|length }} {{ _('Qs') }}</span>
+            <span>&bull;</span>
+            <span>{{ quiz.submissions|length }} {{ _('runs') }}</span>
+        </div>
+        <div
+            style="border-top: 1px solid var(--border-color); padding-top: 1rem; margin-top: auto; display: flex; flex-direction: column; gap: 0.5rem;">
+            <div class="mobile-stack" style="display: flex; gap: 0.5rem;">
+                <a href="{{ url_for('teacher.host_live', quiz_id=quiz.id) }}" class="btn btn-sm"
+                    style="background:#10b981; color:white; border:none; flex: 1; text-align: center;">▶ {{ _('Host
+                    Live') }}</a>
+                <a href="{{ url_for('teacher.view_results', quiz_id=quiz.id) }}" class="btn btn-primary btn-sm"
+                    style="flex: 1; text-align: center;">{{ _('Results') }}</a>
+            </div>
+            <div class="mobile-stack" style="display: flex; gap: 0.5rem;">
+                {% if current_user.role != 'secretary' %}
+                <a href="{{ url_for('teacher.edit_quiz', quiz_id=quiz.id) }}" class="btn btn-secondary btn-sm"
+                    style="flex: 1; text-align: center;">{{ _('Edit') }}</a>
+                <form id="delete-form-{{ quiz.id }}" action="{{ url_for('teacher.delete_quiz', quiz_id=quiz.id) }}"
+                    method="POST" style="flex: 1; display: flex;">
+                    <button type="button" class="btn btn-secondary btn-sm"
+                        style="color: var(--error); width: 100%; border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.05);"
+                        onclick="confirmDelete('{{ quiz.id }}')">{{ _('Delete') }}</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="card text-center" style="grid-column: 1 / -1; padding: 4rem 2rem;">
+        <h3 style="margin-bottom: 0.5rem;">{{ _('No quizzes found') }}</h3>
+        <p>{{ _("This account hasn't created any quizzes yet.") }}</p>
+        {% if current_user.role != 'secretary' %}
+        <a href="{{ url_for('teacher.add_quiz', user_id=target_user.id) if target_user.id != current_user.id else url_for('teacher.add_quiz') }}"
+            class="btn btn-primary mt-4">{{ _('Create First Quiz') }}</a>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+
+{% if pagination.pages > 1 %}
+<div style="display: flex; justify-content: center; gap: 0.5rem; margin-top: 2rem;">
+    {% if pagination.has_prev %}
+    <a href="{{ url_for(request.endpoint, page=pagination.prev_num, q=search, **request.view_args) }}"
+        class="btn btn-secondary">&laquo; {{ _('Prev') }}</a>
+    {% endif %}
+
+    {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+    {% if page_num %}
+    {% if page_num == pagination.page %}
+    <span class="btn btn-primary">{{ page_num }}</span>
+    {% else %}
+    <a href="{{ url_for(request.endpoint, page=page_num, q=search, **request.view_args) }}" class="btn btn-secondary">{{
+        page_num }}</a>
+    {% endif %}
+    {% else %}
+    <span style="padding: 0.5rem;">...</span>
+    {% endif %}
+    {% endfor %}
+
+    {% if pagination.has_next %}
+    <a href="{{ url_for(request.endpoint, page=pagination.next_num, q=search, **request.view_args) }}"
+        class="btn btn-secondary">{{ _('Next') }} &raquo;</a>
+    {% endif %}
+</div>
+{% endif %}
+
+<script>
+    async function confirmDelete(quizId) {
+        const confirmed = await customConfirm(
+            "{{ _('Delete Quiz') }}",
+            "{{ _('Are you sure you want to delete this quiz? This action cannot be undone.') }}",
+            "{{ _('Delete') }}",
+            true
+        );
+        if (confirmed) {
+            document.getElementById('delete-form-' + quizId).submit();
+        }
+    }
+</script>
+{% endblock %}

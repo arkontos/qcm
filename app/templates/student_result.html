@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 0 auto; margin-top: 5vh; text-align: center;">
+    <div class="card" style="padding: 3rem;">
+        <h1 style="margin-bottom: 0.5rem;">Quiz Submitted!</h1>
+        <p style="font-size: 1.125rem;">Thank you, <strong>{{ student_name }}</strong>.</p>
+
+        {% if show_results %}
+        <div
+            style="margin: 2rem 0; padding: 2rem; background: var(--bg-color); border-radius: 50%; width: 200px; height: 200px; display: inline-flex; align-items: center; justify-content: center; flex-direction: column; border: 4px solid {% if max_score > 0 and (score / max_score) >= 0.5 %}var(--success){% else %}var(--error){% endif %};">
+            <span style="font-size: 3rem; font-weight: 700; color: var(--text-color);">{{ score }}</span>
+            <span style="font-size: 1rem; color: var(--text-muted); font-weight: 500;">out of {{ max_score }}</span>
+        </div>
+
+        <div>
+            {% if max_score > 0 and (score / max_score) >= 0.5 %}
+            <h2 style="color: var(--success);">Congratulations! 🎉</h2>
+            <p>You have passed this quiz.</p>
+            {% else %}
+            <h2 style="color: var(--error);">Keep Practicing! 💪</h2>
+            <p>You didn't pass this time.</p>
+            {% endif %}
+        </div>
+        {% else %}
+        <div style="margin: 3rem 0;">
+            <p style="font-size: 1.25rem; color: var(--text-muted);">The instructor has chosen not to display results
+                immediately. Your submission has been securely recorded.</p>
+        </div>
+        {% endif %}
+
+        {% if show_leaderboard and leaderboard %}
+        <div class="mt-4 mb-4" style="text-align: left;">
+            <h3 style="text-align: center; margin-bottom: 1.5rem;">🏆 Global Leaderboard (Top 10)</h3>
+            <div style="border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead style="background: rgba(0,0,0,0.03);">
+                        <tr>
+                            <th style="padding: 0.75rem 1rem; border-bottom: 2px solid var(--border-color);">Rank</th>
+                            <th style="padding: 0.75rem 1rem; border-bottom: 2px solid var(--border-color);">Name</th>
+                            <th
+                                style="padding: 0.75rem 1rem; border-bottom: 2px solid var(--border-color); text-align: right;">
+                                Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in leaderboard %}
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 0.75rem 1rem; font-weight: 600; color: var(--text-muted);">
+                                {% if loop.index == 1 %}🥇{% elif loop.index == 2 %}🥈{% elif loop.index == 3 %}🥉{%
+                                else %}{{ loop.index }}{% endif %}
+                            </td>
+                            <td style="padding: 0.75rem 1rem;">
+                                {% if entry.student_name == student_name %}<strong>{{ entry.student_name }}
+                                    (You)</strong>{% else %}{{ entry.student_name }}{% endif %}
+                            </td>
+                            <td style="padding: 0.75rem 1rem; text-align: right; font-weight: 500;">
+                                {{ entry.score }} / {{ entry.max_score }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        <div style="margin-top: 2rem;">
+            <a href="{{ url_for('main.home') }}" class="btn btn-secondary mt-4">Back to Home</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

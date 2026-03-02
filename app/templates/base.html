@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ _('QCM Platform') }}{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script>
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    </script>
+    <script>
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    <script type="text/javascript" id="MathJax-script" async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
+        </script>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="{{ url_for('main.home') }}" class="nav-brand">{{ _('QCM Platform') }}</a>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                {% if current_user.is_authenticated %}
+                <span style="font-weight: 500;">{{ _('Role:') }} <span style="text-transform: capitalize;">{{
+                        current_user.role
+                        }}</span> | {{ current_user.username }}</span>
+                {% if current_user.role == 'admin' %}
+                <a href="{{ url_for('admin.dashboard') }}"
+                    style="color: var(--text-color); font-size: 0.875rem; text-decoration: none; font-weight: 500;">{{
+                    _('Admin Panel') }}</a>
+                {% elif current_user.role == 'secretary' %}
+                <a href="{{ url_for('admin.dashboard') }}"
+                    style="color: var(--text-color); font-size: 0.875rem; text-decoration: none; font-weight: 500;">{{
+                    _('User Panel') }}</a>
+                {% elif current_user.role == 'student' %}
+                <a href="{{ url_for('student.dashboard') }}"
+                    style="color: var(--text-color); font-size: 0.875rem; text-decoration: none; font-weight: 500;">{{
+                    _('Dashboard') }}</a>
+                {% else %}
+                <a href="{{ url_for('teacher.dashboard') }}"
+                    style="color: var(--text-color); font-size: 0.875rem; text-decoration: none; font-weight: 500;">{{
+                    _('Dashboard') }}</a>
+                {% endif %}
+
+                <a href="{{ url_for('messages.inbox') }}"
+                    style="color: var(--primary); font-size: 0.875rem; text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; position: relative;">
+                    <i class="fas fa-envelope" style="margin-right: 0.3rem;"></i> {{ _('Messages') }}
+                    {% if unread_messages_count and unread_messages_count > 0 %}
+                    <span
+                        style="position: absolute; top: -8px; right: -15px; background-color: var(--error); color: white; border-radius: 999px; padding: 2px 6px; font-size: 0.65rem; font-weight: bold; line-height: 1; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                        {{ unread_messages_count }}
+                    </span>
+                    {% endif %}
+                </a>
+
+                <a href="{{ url_for('auth.logout') }}" class="btn btn-secondary btn-sm">{{ _('Logout') }}</a>
+                {% else %}
+                <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-sm">{{ _('Sign In') }}</a>
+                {% endif %}
+                <button id="theme-toggle" class="btn btn-secondary btn-sm" style="padding: 0.375rem 0.6rem;">
+                    <span id="theme-icon">🌙</span>
+                </button>
+                <form action="{{ url_for('main.set_language') }}" method="POST" style="margin: 0;">
+                    <select name="language" onchange="this.form.submit()" class="form-control"
+                        style="padding: 0.25rem 0.5rem; height: auto; font-size: 0.875rem;">
+                        <option value="en" {% if session.get('lang', 'en' )=='en' %}selected{% endif %}>EN</option>
+                        <option value="fr" {% if session.get('lang')=='fr' %}selected{% endif %}>FR</option>
+                    </select>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Global Containers -->
+    <div id="toast-container"></div>
+    <div id="global-modal" class="modal-backdrop">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">{{ _('Title') }}</h3>
+            </div>
+            <div class="modal-body">
+                <p id="modal-message">{{ _('Message') }}</p>
+                <div id="modal-input-container" class="hidden">
+                    <input type="text" id="modal-input" class="modal-input"
+                        onkeydown="if(event.key === 'Enter') document.getElementById('modal-confirm-btn').click();">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="modal-cancel-btn">{{ _('Cancel') }}</button>
+                <button type="button" class="btn btn-primary" id="modal-confirm-btn">{{ _('Confirm') }}</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Toasts ---
+        function showToast(message, type = 'error') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerText = message;
+
+            container.appendChild(toast);
+
+            // Trigger animation
+            requestAnimationFrame(() => {
+                toast.classList.add('show');
+            });
+
+            // Remove after 3s
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300); // Wait for transition
+            }, 3000);
+        }
+
+        // --- Custom Modals ---
+        let currentModalResolve = null;
+
+        function closeGlobalModal() {
+            document.getElementById('global-modal').classList.remove('show');
+            document.getElementById('modal-input-container').classList.add('hidden');
+            document.getElementById('modal-input').value = '';
+            if (currentModalResolve) {
+                currentModalResolve(null);
+                currentModalResolve = null;
+            }
+        }
+
+        document.getElementById('modal-cancel-btn').addEventListener('click', closeGlobalModal);
+
+        function showModal(options) {
+            return new Promise((resolve) => {
+                currentModalResolve = resolve;
+
+                document.getElementById('modal-title').innerText = options.title || '{{ _("Attention") }}';
+                document.getElementById('modal-message').innerText = options.message || '';
+
+                const confirmBtn = document.getElementById('modal-confirm-btn');
+                confirmBtn.innerText = options.confirmText || '{{ _("Confirm") }}';
+                confirmBtn.className = options.destructive ? 'btn btn-secondary' : 'btn btn-primary';
+                if (options.destructive) confirmBtn.style.color = 'var(--error)';
+                else confirmBtn.style.color = '';
+
+                // Show input if prompt
+                const inputContainer = document.getElementById('modal-input-container');
+                const inputEl = document.getElementById('modal-input');
+                if (options.type === 'prompt') {
+                    inputContainer.classList.remove('hidden');
+                    inputEl.setAttribute('placeholder', options.placeholder || '');
+                } else {
+                    inputContainer.classList.add('hidden');
+                }
+
+                document.getElementById('global-modal').classList.add('show');
+                if (options.type === 'prompt') {
+                    // Focus logic
+                    setTimeout(() => inputEl.focus(), 100);
+                }
+
+                // Attach Confirm handler temporarily
+                confirmBtn.onclick = () => {
+                    const val = options.type === 'prompt' ? inputEl.value.trim() : true;
+                    if (options.type === 'prompt' && !val && options.required) {
+                        showToast('{{ _("Please enter a value.") }}', 'error');
+                        inputEl.focus();
+                        return;
+                    }
+                    document.getElementById('global-modal').classList.remove('show');
+                    currentModalResolve(val);
+                    currentModalResolve = null;
+                };
+            });
+        }
+
+        // Helpers
+        window.customPrompt = function (title, placeholder, required = true) {
+            return showModal({ type: 'prompt', title, placeholder, required });
+        };
+
+        window.customConfirm = function (title, message, confirmText = '{{ _("Yes") }}', destructive = false) {
+            return showModal({ type: 'confirm', title, message, confirmText, destructive });
+        };
+
+        // --- Theme Toggler ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggleBtn = document.getElementById('theme-toggle');
+            const icon = document.getElementById('theme-icon');
+
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            if (currentTheme === 'dark') {
+                icon.innerText = '☀️';
+            }
+
+            toggleBtn.addEventListener('click', () => {
+                const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                const newTheme = isDark ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                icon.innerText = isDark ? '🌙' : '☀️';
+            });
+        });
+
+        {% with messages = get_flashed_messages(with_categories = true) %}
+        {% if messages %}
+        document.addEventListener('DOMContentLoaded', () => {
+            {% for category, message in messages %}
+            showToast("{{ message|replace('"', '\\"') }}", "{{ category }}");
+            {% endfor %}
+        });
+        {% endif %}
+        {% endwith %}
+    </script>
+</body>
+
+</html>

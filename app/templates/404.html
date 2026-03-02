@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="flex-between"
+    style="flex-direction: column; justify-content: center; min-height: calc(100vh - 200px); text-align: center;">
+    <div class="card p-4" style="max-width: 500px; width: 100%;">
+        <h1 style="font-size: 4rem; color: var(--primary); margin-bottom: 0;">404</h1>
+        <h2 style="margin-bottom: 1rem;">Quiz Not Found</h2>
+        <p style="color: var(--text-muted); margin-bottom: 2rem;">The quiz you are looking for does not exist or the
+            access code is invalid.</p>
+        <a href="{{ url_for('main.home') }}" class="btn btn-primary" style="padding: 0.75rem 2rem;">Go Home</a>
+    </div>
+</div>
+{% endblock %}
