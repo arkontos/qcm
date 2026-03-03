@@ -110,10 +110,12 @@ body {
     font-size: 0.95rem;
     text-decoration: none;
     font-weight: 500;
-    padding: 0.6rem 0.9rem;
-    border-radius: 99px;
-    /* Pill shape */
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 0.6rem 0;
+    width: 125px;
+    justify-content: center;
+    border-radius: 6px;
+    /* Professional edge */
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -123,7 +125,6 @@ body {
 .nav-item.active {
     background-color: var(--border-color);
     color: var(--text-color);
-    transform: translateY(-1px);
 }
 
 .nav-user-info {
@@ -476,6 +477,11 @@ textarea {
         flex-wrap: wrap;
         justify-content: center;
         gap: 0.5rem;
+    }
+
+    .nav-item {
+        width: auto;
+        padding: 0.5rem 0.75rem;
     }
 
     /* Typography & Spacing */
