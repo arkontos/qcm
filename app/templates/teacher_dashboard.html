@@ -42,26 +42,36 @@
     }
 </style>
 
-<div class="flex-between mb-4">
-    <h1>{{ target_user.email }}{{ _("'s Dashboard") }}</h1>
+<div class="flex-between mb-4 flex-wrap" style="gap: 1.5rem;">
+    <h1 style="margin: 0;">{{ target_user.email }}{{ _("'s Dashboard") }}</h1>
     {% if current_user.role != 'secretary' %}
-    <div class="action-buttons" style="display: flex; flex-wrap: wrap; gap: 1rem;">
-        <button type="button" class="btn btn-secondary" onclick="window.print()"
-            style="border-color: var(--primary); color: var(--primary);">
-            <i class="fas fa-file-pdf"></i> {{ _('Download PDF Report') }}
+    <div class="action-buttons">
+        <button type="button" class="btn btn-secondary text-truncate" onclick="window.print()"
+            style="border-color: var(--primary); color: var(--primary);" title="{{ _('Download PDF Report') }}">
+            <i class="fas fa-file-pdf"></i> <span class="btn-text">{{ _('Download PDF Report') }}</span>
         </button>
-        <button type="button" class="btn btn-secondary" onclick="document.getElementById('csv-upload').click()">{{
-            _('Import CSV') }}</button>
+        <button type="button" class="btn btn-secondary text-truncate"
+            onclick="document.getElementById('csv-upload').click()" title="{{ _('Import CSV') }}">
+            <i class="fas fa-file-csv"></i> <span class="btn-text">{{ _('Import CSV') }}</span>
+        </button>
         <form id="csv-form"
             action="{{ url_for('teacher.import_csv', user_id=target_user.id) if target_user.id != current_user.id else url_for('teacher.import_csv') }}"
             method="POST" enctype="multipart/form-data" style="display: none;">
             <input type="file" id="csv-upload" name="csv_file" accept=".csv"
                 onchange="document.getElementById('csv-form').submit()">
         </form>
-        <a href="{{ url_for('teacher.classrooms') }}" class="btn btn-secondary">{{ _('Classrooms') }}</a>
-        <a href="{{ url_for('teacher.question_bank') }}" class="btn btn-secondary">{{ _('Question Bank') }}</a>
+        <a href="{{ url_for('teacher.classrooms') }}" class="btn btn-secondary text-truncate"
+            title="{{ _('Classrooms') }}">
+            <i class="fas fa-chalkboard"></i> <span class="btn-text">{{ _('Classrooms') }}</span>
+        </a>
+        <a href="{{ url_for('teacher.question_bank') }}" class="btn btn-secondary text-truncate"
+            title="{{ _('Question Bank') }}">
+            <i class="fas fa-database"></i> <span class="btn-text">{{ _('Question Bank') }}</span>
+        </a>
         <a href="{{ url_for('teacher.add_quiz', user_id=target_user.id) if target_user.id != current_user.id else url_for('teacher.add_quiz') }}"
-            class="btn btn-primary">{{ _('Create New Quiz') }}</a>
+            class="btn btn-primary text-truncate" title="{{ _('Create New Quiz') }}">
+            <i class="fas fa-plus"></i> <span class="btn-text">{{ _('Create New Quiz') }}</span>
+        </a>
     </div>
     {% endif %}
 </div>
