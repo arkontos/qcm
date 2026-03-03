@@ -12,15 +12,15 @@
         <form method="POST" action="{{ url_for('auth.register') }}">
             <div class="form-group">
                 <label for="email">{{ _('Email Address') }}</label>
-                <input type="email" id="email" name="email" required>
+                <input type="email" id="email" name="email" class="form-control" required>
             </div>
             <div class="form-group">
                 <label for="password">{{ _('Password') }}</label>
-                <input type="password" id="password" name="password" required>
+                <input type="password" id="password" name="password" class="form-control" required>
             </div>
             <div class="form-group">
                 <label for="confirm_password">{{ _('Confirm Password') }}</label>
-                <input type="password" id="confirm_password" name="confirm_password" required>
+                <input type="password" id="confirm_password" name="confirm_password" class="form-control" required>
             </div>
             <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">{{ _('Register')
                 }}</button>
