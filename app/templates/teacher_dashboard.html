@@ -1,5 +1,42 @@
 {% extends 'base.html' %}
 
+{% block nav_actions %}
+{% if current_user.role != 'secretary' %}
+<div class="nav-dropdown" style="margin-left: 0.5rem;">
+    <button class="btn btn-secondary btn-sm"
+        style="display: flex; align-items: center; gap: 0.4rem; padding: 0.375rem 0.6rem;"
+        title="{{ _('Teacher Actions') }}">
+        <i class="fas fa-tools"></i> <span class="hide-mobile">{{ _('Actions') }}</span>
+        <i class="fas fa-chevron-down" style="font-size: 0.7rem; margin-left: 0.2rem;"></i>
+    </button>
+    <div class="nav-dropdown-content">
+        <button type="button" onclick="window.print()">
+            <i class="fas fa-file-pdf"></i> {{ _('Download PDF Report') }}
+        </button>
+        <button type="button" onclick="document.getElementById('csv-upload').click()">
+            <i class="fas fa-file-csv"></i> {{ _('Import CSV') }}
+        </button>
+        <a href="{{ url_for('teacher.classrooms') }}">
+            <i class="fas fa-chalkboard"></i> {{ _('Classrooms') }}
+        </a>
+        <a href="{{ url_for('teacher.question_bank') }}">
+            <i class="fas fa-database"></i> {{ _('Question Bank') }}
+        </a>
+        <a href="{{ url_for('teacher.add_quiz', user_id=target_user.id) if target_user.id != current_user.id else url_for('teacher.add_quiz') }}"
+            style="color: #3b82f6; font-weight: 600;">
+            <i class="fas fa-plus"></i> {{ _('Create New Quiz') }}
+        </a>
+    </div>
+</div>
+<form id="csv-form"
+    action="{{ url_for('teacher.import_csv', user_id=target_user.id) if target_user.id != current_user.id else url_for('teacher.import_csv') }}"
+    method="POST" enctype="multipart/form-data" style="display: none;">
+    <input type="file" id="csv-upload" name="csv_file" accept=".csv"
+        onchange="document.getElementById('csv-form').submit()">
+</form>
+{% endif %}
+{% endblock %}
+
 {% block content %}
 <style>
     .kpi-grid {
@@ -44,36 +81,6 @@
 
 <div class="flex-between mb-4 flex-wrap" style="gap: 1.5rem;">
     <h1 style="margin: 0;">{{ target_user.email }}{{ _("'s Dashboard") }}</h1>
-    {% if current_user.role != 'secretary' %}
-    <div class="action-buttons">
-        <button type="button" class="btn btn-secondary text-truncate" onclick="window.print()"
-            style="border-color: var(--primary); color: var(--primary);" title="{{ _('Download PDF Report') }}">
-            <i class="fas fa-file-pdf"></i> <span class="btn-text">{{ _('Download PDF Report') }}</span>
-        </button>
-        <button type="button" class="btn btn-secondary text-truncate"
-            onclick="document.getElementById('csv-upload').click()" title="{{ _('Import CSV') }}">
-            <i class="fas fa-file-csv"></i> <span class="btn-text">{{ _('Import CSV') }}</span>
-        </button>
-        <form id="csv-form"
-            action="{{ url_for('teacher.import_csv', user_id=target_user.id) if target_user.id != current_user.id else url_for('teacher.import_csv') }}"
-            method="POST" enctype="multipart/form-data" style="display: none;">
-            <input type="file" id="csv-upload" name="csv_file" accept=".csv"
-                onchange="document.getElementById('csv-form').submit()">
-        </form>
-        <a href="{{ url_for('teacher.classrooms') }}" class="btn btn-secondary text-truncate"
-            title="{{ _('Classrooms') }}">
-            <i class="fas fa-chalkboard"></i> <span class="btn-text">{{ _('Classrooms') }}</span>
-        </a>
-        <a href="{{ url_for('teacher.question_bank') }}" class="btn btn-secondary text-truncate"
-            title="{{ _('Question Bank') }}">
-            <i class="fas fa-database"></i> <span class="btn-text">{{ _('Question Bank') }}</span>
-        </a>
-        <a href="{{ url_for('teacher.add_quiz', user_id=target_user.id) if target_user.id != current_user.id else url_for('teacher.add_quiz') }}"
-            class="btn btn-primary text-truncate" title="{{ _('Create New Quiz') }}">
-            <i class="fas fa-plus"></i> <span class="btn-text">{{ _('Create New Quiz') }}</span>
-        </a>
-    </div>
-    {% endif %}
 </div>
 
 <div class="kpi-grid">
