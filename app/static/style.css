@@ -176,6 +176,7 @@ label {
 }
 
 input[type="text"],
+input[type="email"],
 input[type="password"],
 input[type="number"],
 select,
@@ -445,6 +446,7 @@ textarea {
     }
 
     input[type="text"],
+    input[type="email"],
     input[type="password"],
     input[type="number"],
     select,
