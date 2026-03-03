@@ -74,7 +74,41 @@
                     <i class="fas fa-key"></i> <span class="hide-mobile">{{ _('Password') }}</span>
                 </a>
 
-                {% block nav_actions %}{% endblock %}
+                {% if current_user.role in ['teacher', 'admin'] %}
+                {% set t_user = target_user if target_user is defined else current_user %}
+                <div class="nav-dropdown" style="margin-left: 0.5rem;">
+                    <button class="btn btn-secondary btn-sm"
+                        style="display: flex; align-items: center; gap: 0.4rem; padding: 0.375rem 0.6rem;"
+                        title="{{ _('Actions') }}">
+                        <i class="fas fa-tools"></i> <span class="hide-mobile">{{ _('Actions') }}</span>
+                        <i class="fas fa-chevron-down" style="font-size: 0.7rem; margin-left: 0.2rem;"></i>
+                    </button>
+                    <div class="nav-dropdown-content">
+                        <button type="button" onclick="window.print()">
+                            <i class="fas fa-file-pdf"></i> {{ _('Print Page') }}
+                        </button>
+                        <button type="button" onclick="document.getElementById('csv-upload').click()">
+                            <i class="fas fa-file-csv"></i> {{ _('Import CSV') }}
+                        </button>
+                        <a href="{{ url_for('teacher.classrooms') }}">
+                            <i class="fas fa-chalkboard"></i> {{ _('Classrooms') }}
+                        </a>
+                        <a href="{{ url_for('teacher.question_bank') }}">
+                            <i class="fas fa-database"></i> {{ _('Question Bank') }}
+                        </a>
+                        <a href="{{ url_for('teacher.add_quiz', user_id=t_user.id) if t_user.id != current_user.id else url_for('teacher.add_quiz') }}"
+                            style="color: #3b82f6; font-weight: 600;">
+                            <i class="fas fa-plus"></i> {{ _('Create New Quiz') }}
+                        </a>
+                    </div>
+                </div>
+                <form id="csv-form"
+                    action="{{ url_for('teacher.import_csv', user_id=t_user.id) if t_user.id != current_user.id else url_for('teacher.import_csv') }}"
+                    method="POST" enctype="multipart/form-data" style="display: none;">
+                    <input type="file" id="csv-upload" name="csv_file" accept=".csv"
+                        onchange="document.getElementById('csv-form').submit()">
+                </form>
+                {% endif %}
 
                 <a href="{{ url_for('auth.logout') }}" class="btn btn-secondary btn-sm" style="margin-left: 0.5rem;">
                     <i class="fas fa-sign-out-alt"></i> <span class="hide-mobile">{{ _('Logout') }}</span>
