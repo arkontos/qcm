@@ -32,54 +32,61 @@
 <body>
     <nav class="navbar">
         <div class="nav-container">
-            <a href="{{ url_for('main.home') }}" class="nav-brand">{{ _('QCM Platform') }}</a>
-            <div style="display: flex; gap: 1rem; align-items: center;">
+            <a href="{{ url_for('main.home') }}" class="nav-brand">
+                <i class="fas fa-graduation-cap"></i> {{ _('QCM Platform') }}
+            </a>
+            <div class="nav-menu">
                 {% if current_user.is_authenticated %}
-                <span style="font-weight: 500;">{{ _('Role:') }} <span style="text-transform: capitalize;">{{
-                        current_user.role
-                        }}</span> | <span style="font-weight: 500;">{{ current_user.email }}</span></span>
+                <div class="nav-user-info">
+                    <span class="nav-user-email">{{ current_user.email }}</span>
+                    <span class="nav-user-role">{{ current_user.role }}</span>
+                </div>
+
                 {% if current_user.role == 'admin' %}
-                <a href="{{ url_for('admin.dashboard') }}"
-                    style="color: var(--text-color); font-size: 0.875rem; text-decoration: none; font-weight: 500;">{{
-                    _('Admin Panel') }}</a>
+                <a href="{{ url_for('admin.dashboard') }}" class="nav-item">
+                    <i class="fas fa-user-shield"></i> <span class="hide-mobile">{{ _('Admin Panel') }}</span>
+                </a>
                 {% elif current_user.role == 'secretary' %}
-                <a href="{{ url_for('admin.dashboard') }}"
-                    style="color: var(--text-color); font-size: 0.875rem; text-decoration: none; font-weight: 500;">{{
-                    _('User Panel') }}</a>
+                <a href="{{ url_for('admin.dashboard') }}" class="nav-item">
+                    <i class="fas fa-users-cog"></i> <span class="hide-mobile">{{ _('User Panel') }}</span>
+                </a>
                 {% elif current_user.role == 'student' %}
-                <a href="{{ url_for('student.dashboard') }}"
-                    style="color: var(--text-color); font-size: 0.875rem; text-decoration: none; font-weight: 500;">{{
-                    _('Dashboard') }}</a>
+                <a href="{{ url_for('student.dashboard') }}" class="nav-item">
+                    <i class="fas fa-home"></i> <span class="hide-mobile">{{ _('Dashboard') }}</span>
+                </a>
                 {% else %}
-                <a href="{{ url_for('teacher.dashboard') }}"
-                    style="color: var(--text-color); font-size: 0.875rem; text-decoration: none; font-weight: 500;">{{
-                    _('Dashboard') }}</a>
+                <a href="{{ url_for('teacher.dashboard') }}" class="nav-item">
+                    <i class="fas fa-chalkboard-teacher"></i> <span class="hide-mobile">{{ _('Dashboard') }}</span>
+                </a>
                 {% endif %}
 
-                <a href="{{ url_for('messages.inbox') }}"
-                    style="color: var(--primary); font-size: 0.875rem; text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; position: relative;">
-                    <i class="fas fa-envelope" style="margin-right: 0.3rem;"></i> {{ _('Messages') }}
+                <a href="{{ url_for('messages.inbox') }}" class="nav-item" style="position: relative;">
+                    <i class="fas fa-envelope"></i> <span class="hide-mobile">{{ _('Messages') }}</span>
                     {% if unread_messages_count and unread_messages_count > 0 %}
                     <span
-                        style="position: absolute; top: -8px; right: -15px; background-color: var(--error); color: white; border-radius: 999px; padding: 2px 6px; font-size: 0.65rem; font-weight: bold; line-height: 1; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                        style="position: absolute; top: 0px; right: 0px; background-color: var(--error); color: white; border-radius: 999px; padding: 2px 5px; font-size: 0.65rem; font-weight: bold; line-height: 1; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transform: translate(25%, -25%);">
                         {{ unread_messages_count }}
                     </span>
                     {% endif %}
                 </a>
 
-                <a href="{{ url_for('auth.change_password') }}" class="btn btn-secondary btn-sm"
-                    style="background-color: transparent; border: 1px solid var(--border-color); color: var(--text-color);">{{
-                    _('Change Password') }}</a>
-                <a href="{{ url_for('auth.logout') }}" class="btn btn-secondary btn-sm">{{ _('Logout') }}</a>
+                <a href="{{ url_for('auth.change_password') }}" class="nav-item" title="{{ _('Change Password') }}">
+                    <i class="fas fa-key"></i> <span class="hide-mobile">{{ _('Password') }}</span>
+                </a>
+                <a href="{{ url_for('auth.logout') }}" class="btn btn-secondary btn-sm" style="margin-left: 0.5rem;">
+                    <i class="fas fa-sign-out-alt"></i> <span class="hide-mobile">{{ _('Logout') }}</span>
+                </a>
                 {% else %}
                 <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-sm">{{ _('Sign In') }}</a>
                 {% endif %}
-                <button id="theme-toggle" class="btn btn-secondary btn-sm" style="padding: 0.375rem 0.6rem;">
+
+                <button id="theme-toggle" class="btn btn-secondary btn-sm"
+                    style="padding: 0.375rem 0.6rem; margin-left: 0.5rem;" title="{{ _('Toggle Dark Mode') }}">
                     <span id="theme-icon">🌙</span>
                 </button>
-                <form action="{{ url_for('main.set_language') }}" method="POST" style="margin: 0;">
+                <form action="{{ url_for('main.set_language') }}" method="POST" style="margin: 0; margin-left: 0.5rem;">
                     <select name="language" onchange="this.form.submit()" class="form-control"
-                        style="padding: 0.25rem 0.5rem; height: auto; font-size: 0.875rem;">
+                        style="padding: 0.375rem 0.5rem; height: auto; font-size: 0.75rem; min-width: 60px;">
                         <option value="en" {% if session.get('lang', 'en' )=='en' %}selected{% endif %}>EN</option>
                         <option value="fr" {% if session.get('lang')=='fr' %}selected{% endif %}>FR</option>
                     </select>

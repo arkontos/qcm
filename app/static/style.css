@@ -43,11 +43,23 @@ body {
 .navbar {
     background-color: var(--card-bg);
     border-bottom: 1px solid var(--border-color);
-    padding: 1rem 1.5rem;
+    padding: 0.75rem 1.5rem;
     position: sticky;
     top: 0;
     z-index: 100;
-    transition: background-color 0.2s ease, border-color 0.2s ease;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+}
+
+@supports (backdrop-filter: blur(10px)) {
+    .navbar {
+        background-color: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+    }
+
+    :root[data-theme="dark"] .navbar {
+        background-color: rgba(31, 41, 55, 0.85);
+    }
 }
 
 .nav-container {
@@ -59,11 +71,67 @@ body {
 }
 
 .nav-brand {
-    font-weight: 600;
-    font-size: 1.125rem;
+    font-weight: 700;
+    font-size: 1.25rem;
     color: var(--text-color);
     text-decoration: none;
     letter-spacing: -0.025em;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.nav-brand i {
+    color: #3b82f6;
+}
+
+.nav-menu {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.nav-item {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.nav-item:hover,
+.nav-item.active {
+    background-color: var(--border-color);
+    color: var(--text-color);
+}
+
+.nav-user-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    margin-right: 0.5rem;
+    padding-right: 1rem;
+    border-right: 1px solid var(--border-color);
+}
+
+.nav-user-email {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-color);
+    line-height: 1.2;
+}
+
+.nav-user-role {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 500;
 }
 
 /* Container & Typography */
@@ -467,6 +535,14 @@ textarea {
     .toast {
         min-width: unset;
         width: calc(100vw - 3rem);
+    }
+
+    .hide-mobile {
+        display: none !important;
+    }
+
+    .nav-user-info {
+        display: none !important;
     }
 }
 
