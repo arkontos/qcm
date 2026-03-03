@@ -184,7 +184,7 @@ body {
     }
 }
 
-.nav-dropdown:hover .nav-dropdown-content {
+.nav-dropdown-content.show {
     display: block;
 }
 
