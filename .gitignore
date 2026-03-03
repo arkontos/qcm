@@ -76,3 +76,4 @@ instance/
 
 # macOS
 .DS_Store
+.env
