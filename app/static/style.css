@@ -217,6 +217,7 @@ p {
     font-weight: 500;
     font-size: 0.875rem;
     cursor: pointer;
+    white-space: nowrap;
     transition: all 0.2s ease;
     border: 1px solid transparent;
 }

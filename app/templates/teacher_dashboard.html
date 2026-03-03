@@ -45,7 +45,7 @@
 <div class="flex-between mb-4">
     <h1>{{ target_user.email }}{{ _("'s Dashboard") }}</h1>
     {% if current_user.role != 'secretary' %}
-    <div class="action-buttons" style="display: flex; gap: 1rem;">
+    <div class="action-buttons" style="display: flex; flex-wrap: wrap; gap: 1rem;">
         <button type="button" class="btn btn-secondary" onclick="window.print()"
             style="border-color: var(--primary); color: var(--primary);">
             <i class="fas fa-file-pdf"></i> {{ _('Download PDF Report') }}
