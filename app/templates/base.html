@@ -36,8 +36,6 @@
                 style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none;">
                 <img src="{{ url_for('static', filename='logo.png') }}" alt="{{ _('QCM Logo') }}"
                     style="height: 32px; width: auto; object-fit: contain;">
-                <span
-                    style="font-weight: 700; font-size: 1.25rem; letter-spacing: -0.025em; background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; color: transparent;">QCM</span>
             </a>
             <div class="nav-menu">
                 {% if current_user.is_authenticated %}
