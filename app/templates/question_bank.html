@@ -433,7 +433,7 @@
                                 style="display: none; flex: 2; padding: 0.6rem;">
 
                             <span class="bank-order-label"
-                                style="display: none; color: var(--primary); font-size: 0.85rem; font-weight: 600; background: rgba(59, 130, 246, 0.1); padding: 0.3rem 0.75rem; border-radius: 999px;">{{
+                                style="display: none; color: var(--primary); font-size: 0.85rem; font-weight: 600; background: rgba(59, 130, 246, 0.1); padding: 0.3rem 0.75rem; border-radius: 999px; white-space: nowrap; flex-shrink: 0;">{{
                                 _('Step') }}
                                 {{ i + 1 }}</span>
 
@@ -712,7 +712,7 @@
                 <input type="text" name="options_media[]" class="form-control form-control-sm" placeholder="{{ _('Media URL (Opt)') }}" style="padding: 0.6rem 0.6rem 0.6rem 2rem; font-size: 0.85rem; width: 100%;">
             </div>
             <input type="text" class="form-control bank-opt-secondary" name="matches[]" placeholder="{{ _('Matches with...') }}" style="display: none; flex: 2; padding: 0.6rem;">
-            <span class="bank-order-label" style="display: none; color: var(--primary); font-size: 0.85rem; font-weight: 600; background: rgba(59, 130, 246, 0.1); padding: 0.3rem 0.75rem; border-radius: 999px;">${"{{ _('Step') }}"} ${idx + 1}</span>
+            <span class="bank-order-label" style="display: none; color: var(--primary); font-size: 0.85rem; font-weight: 600; background: rgba(59, 130, 246, 0.1); padding: 0.3rem 0.75rem; border-radius: 999px; white-space: nowrap; flex-shrink: 0;">${"{{ _('Step') }}"} ${idx + 1}</span>
             <button type="button" class="btn" style="padding: 0.4rem; color: var(--error); background: rgba(239, 68, 68, 0.1); border-radius: 6px; transition: all 0.2s;" onclick="removeBankOption(this)" title="{{ _('Remove Option') }}" onmouseover="this.style.background='#ef4444'; this.style.color='white';" onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'; this.style.color='var(--error)';">
                 <i class="fas fa-trash-alt"></i>
             </button>

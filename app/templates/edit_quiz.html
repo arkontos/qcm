@@ -181,7 +181,7 @@
                             <span style="font-size: 1.2rem; cursor: move; color: var(--text-muted);"
                                 title="Drag to reorder">↕</span>
                             <span class="order-label"
-                                style="display: none; color: var(--primary); font-size: 0.85rem; font-weight: 600; background: rgba(59, 130, 246, 0.1); padding: 0.3rem 0.75rem; border-radius: 999px;">Step
+                                style="display: none; color: var(--primary); font-size: 0.85rem; font-weight: 600; background: rgba(59, 130, 246, 0.1); padding: 0.3rem 0.75rem; border-radius: 999px; white-space: nowrap; flex-shrink: 0;">Step
                                 {{ loop.index }}</span>
                             <input type="text" name="questions[{{ question_loop.index }}][options][]"
                                 value="{{ left_part }}" required placeholder="Item"
@@ -194,7 +194,7 @@
                             <span style="font-size: 1.2rem; cursor: move; color: var(--text-muted);"
                                 title="Drag to reorder">↕</span>
                             <span class="order-label"
-                                style="display: inline-block; color: var(--primary); font-size: 0.85rem; font-weight: 600; background: rgba(59, 130, 246, 0.1); padding: 0.3rem 0.75rem; border-radius: 999px;">Step
+                                style="display: inline-block; color: var(--primary); font-size: 0.85rem; font-weight: 600; background: rgba(59, 130, 246, 0.1); padding: 0.3rem 0.75rem; border-radius: 999px; white-space: nowrap; flex-shrink: 0;">Step
                                 {{ loop.index }}</span>
                             <input type="text" name="questions[{{ question_loop.index }}][options][]"
                                 value="{{ option.text }}" required placeholder="Step {{ loop.index }}"
@@ -204,7 +204,7 @@
                                 style="display: none; flex: 2; padding: 0.6rem;">
                             {% else %}
                             <span class="order-label"
-                                style="display: none; color: var(--primary); font-size: 0.85rem; font-weight: 600; background: rgba(59, 130, 246, 0.1); padding: 0.3rem 0.75rem; border-radius: 999px;">Step
+                                style="display: none; color: var(--primary); font-size: 0.85rem; font-weight: 600; background: rgba(59, 130, 246, 0.1); padding: 0.3rem 0.75rem; border-radius: 999px; white-space: nowrap; flex-shrink: 0;">Step
                                 {{ loop.index }}</span>
                             <input type="text" name="questions[{{ question_loop.index }}][options][]"
                                 value="{{ option.text }}" required placeholder="Option {{ loop.index }}"
@@ -359,7 +359,7 @@
         
         <input type="text" class="option-input-secondary form-control" name="questions[${qId}][matches][]" placeholder="Matches with..." style="display: none; flex: 2; padding: 0.6rem;">
         
-        <span class="order-label" style="display: none; color: var(--primary); font-size: 0.85rem; font-weight: 600; background: rgba(59, 130, 246, 0.1); padding: 0.3rem 0.75rem; border-radius: 999px;">Step ${newIndex + 1}</span>
+        <span class="order-label" style="display: none; color: var(--primary); font-size: 0.85rem; font-weight: 600; background: rgba(59, 130, 246, 0.1); padding: 0.3rem 0.75rem; border-radius: 999px; white-space: nowrap; flex-shrink: 0;">Step ${newIndex + 1}</span>
         
         <button type="button" class="btn" style="padding: 0.4rem; color: var(--error); background: rgba(239, 68, 68, 0.1); border-radius: 6px; transition: all 0.2s;"
             onclick="removeOption(this, ${qId})" title="Remove Option" onmouseover="this.style.background='var(--error)'; this.style.color='white';" onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'; this.style.color='var(--error)';">
