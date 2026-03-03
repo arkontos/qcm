@@ -73,13 +73,15 @@
                 <a href="{{ url_for('auth.change_password') }}" class="nav-item" title="{{ _('Change Password') }}">
                     <i class="fas fa-key"></i> <span class="hide-mobile">{{ _('Password') }}</span>
                 </a>
+
+                {% block nav_actions %}{% endblock %}
+
                 <a href="{{ url_for('auth.logout') }}" class="btn btn-secondary btn-sm" style="margin-left: 0.5rem;">
                     <i class="fas fa-sign-out-alt"></i> <span class="hide-mobile">{{ _('Logout') }}</span>
                 </a>
+                {% else %}
                 <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-sm">{{ _('Sign In') }}</a>
                 {% endif %}
-
-                {% block nav_actions %}{% endblock %}
 
                 <button id="theme-toggle" class="btn btn-secondary btn-sm"
                     style="padding: 0.375rem 0.6rem; margin-left: 0.5rem;" title="{{ _('Toggle Dark Mode') }}">
