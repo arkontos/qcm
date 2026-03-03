@@ -178,7 +178,7 @@
         <input type="text" class="option-input-primary" name="questions[${qId}][options][]" required placeholder="Option ${newIndex + 1}">
         <input type="text" name="questions[${qId}][options_media][]" class="form-control form-control-sm" placeholder="Media URL (Opt)" style="max-width: 150px; padding: 0.4rem; font-size: 0.8rem;">
         <input type="text" class="option-input-secondary" name="questions[${qId}][matches][]" placeholder="Matches with..." style="display: none;">
-        <span class="order-label" style="display: none; color: var(--text-muted); font-size: 0.875rem;">Step ${newIndex + 1}</span>
+        <span class="order-label" style="display: none; color: var(--primary); font-size: 0.85rem; font-weight: 600; background: rgba(59, 130, 246, 0.1); padding: 0.3rem 0.75rem; border-radius: 999px;">Step ${newIndex + 1}</span>
         <button type="button" class="btn btn-secondary" style="padding: 0.2rem 0.5rem; font-size: 0.7rem;"
             onclick="removeOption(this, ${qId})">X</button>
     </div>
@@ -215,7 +215,7 @@
             if (textInput) textInput.placeholder = `Option ${index + 1}`;
 
             const orderLabel = group.querySelector('.order-label');
-            if (orderLabel) orderLabel.innerText = `Step ${index + 1}:`;
+            if (orderLabel) orderLabel.innerText = `Step ${index + 1}`;
         });
     }
 
