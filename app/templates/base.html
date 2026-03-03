@@ -67,6 +67,9 @@
                     {% endif %}
                 </a>
 
+                <a href="{{ url_for('auth.change_password') }}" class="btn btn-secondary btn-sm"
+                    style="background-color: transparent; border: 1px solid var(--border-color); color: var(--text-color);">{{
+                    _('Change Password') }}</a>
                 <a href="{{ url_for('auth.logout') }}" class="btn btn-secondary btn-sm">{{ _('Logout') }}</a>
                 {% else %}
                 <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-sm">{{ _('Sign In') }}</a>

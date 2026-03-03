@@ -88,3 +88,38 @@ def register():
 def logout():
     logout_user()
     return redirect(url_for('main.home'))
+
+@bp.route('/change_password', methods=['GET', 'POST'])
+@login_required
+def change_password():
+    if request.method == 'POST':
+        current_password = request.form.get('current_password')
+        new_password = request.form.get('new_password')
+        confirm_password = request.form.get('confirm_password')
+
+        if not current_user.check_password(current_password):
+            flash('Incorrect current password.', 'error')
+            return redirect(url_for('auth.change_password'))
+
+        if new_password != confirm_password:
+            flash('New passwords do not match.', 'error')
+            return redirect(url_for('auth.change_password'))
+
+        if len(new_password) < 6: # Optional simple validation
+            flash('New password must be at least 6 characters long.', 'error')
+            return redirect(url_for('auth.change_password'))
+
+        current_user.set_password(new_password)
+        from app import db
+        db.session.commit()
+        
+        flash('Password updated successfully.', 'success')
+        
+        # Redirect to the appropriate dashboard
+        if current_user.role == 'admin' or current_user.role == 'secretary':
+            return redirect(url_for('admin.dashboard'))
+        elif current_user.role == 'student':
+            return redirect(url_for('student.dashboard'))
+        return redirect(url_for('teacher.dashboard'))
+
+    return render_template('change_password.html')
