@@ -34,7 +34,7 @@
                 <tr style="border-bottom: 1px solid var(--border-color);">
                     <td style="padding: 0.75rem 0; font-weight: bold; color: var(--primary);">#{{ loop.index }}</td>
                     <td style="padding: 0.75rem 0;">
-                        {{ student.username }}
+                        {{ student.email }}
                         {% if loop.index == 1 %}<span title="Class Leader" style="margin-left:5px;">👑</span>{% endif %}
                     </td>
                     <td style="padding: 0.75rem 0; font-weight: 500;">{{ student.xp or 0 }} XP</td>

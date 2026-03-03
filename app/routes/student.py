@@ -227,7 +227,7 @@ def submit(access_code):
     quiz = Quiz.query.filter_by(access_code=access_code).first_or_404()
     
     if current_user.is_authenticated:
-        student_name = current_user.username
+        student_name = current_user.email
         user_id = current_user.id
         existing_sub = Submission.query.filter_by(quiz_id=quiz.id, user_id=current_user.id).first()
     else:
@@ -398,7 +398,7 @@ def join_live():
         name = request.form.get('name')
         
         if current_user.is_authenticated:
-            name = current_user.username
+            name = current_user.email
             
         if not pin or not name:
             flash('Please provide both PIN and Name', 'error')
@@ -419,7 +419,7 @@ def join_live():
 def play_live(pin):
     name = session.get('live_name')
     if current_user.is_authenticated:
-        name = current_user.username
+        name = current_user.email
         
     if not name:
         flash('Please enter your name to join', 'error')

@@ -43,7 +43,7 @@
 </style>
 
 <div class="flex-between mb-4">
-    <h1>{{ target_user.username }}{{ _("'s Dashboard") }}</h1>
+    <h1>{{ target_user.email }}{{ _("'s Dashboard") }}</h1>
     {% if current_user.role != 'secretary' %}
     <div class="action-buttons" style="display: flex; gap: 1rem;">
         <button type="button" class="btn btn-secondary" onclick="window.print()"
@@ -112,7 +112,7 @@
             <tbody>
                 {% for item in at_risk_students %}
                 <tr style="border-bottom: 1px solid var(--border-color);">
-                    <td style="padding: 0.5rem 0; font-weight: 500;">{{ item.student.username }}</td>
+                    <td style="padding: 0.5rem 0; font-weight: 500;">{{ item.student.email }}</td>
                     <td style="padding: 0.5rem 0; color: var(--error); font-weight: bold;">{{ item.average }}%</td>
                     <td style="padding: 0.5rem 0; color: var(--text-muted);">{{ item.attempts }}</td>
                 </tr>

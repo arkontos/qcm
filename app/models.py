@@ -23,10 +23,14 @@ classroom_quizzes = db.Table('classroom_quizzes',
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
     role = db.Column(db.String(20), default='teacher', nullable=False)
     is_active = db.Column(db.Boolean, default=True, nullable=False)
+    
+    # Email Confirmation
+    email_confirmed = db.Column(db.Boolean, default=False, nullable=False)
+    confirmation_code = db.Column(db.String(6), nullable=True)
     
     # Gamification Fields
     xp = db.Column(db.Integer, default=0)

@@ -37,7 +37,7 @@
                 {% if current_user.is_authenticated %}
                 <span style="font-weight: 500;">{{ _('Role:') }} <span style="text-transform: capitalize;">{{
                         current_user.role
-                        }}</span> | {{ current_user.username }}</span>
+                        }}</span> | <span style="font-weight: 500;">{{ current_user.email }}</span></span>
                 {% if current_user.role == 'admin' %}
                 <a href="{{ url_for('admin.dashboard') }}"
                     style="color: var(--text-color); font-size: 0.875rem; text-decoration: none; font-weight: 500;">{{

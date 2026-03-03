@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="max-width: 400px; margin: 10vh auto;">
+    <div class="card p-4">
+        <h2 class="text-center mb-4">{{ _('Confirm Email') }}</h2>
+
+        <p class="text-center mb-4" style="color: var(--text-muted); font-size: 0.9rem;">
+            {{ _('Please enter the 6-digit confirmation code sent to your email address.') }}
+        </p>
+
+        <form action="{{ url_for('auth.confirm_email') }}" method="POST">
+            <div class="form-group">
+                <label for="email">{{ _('Email Address') }}</label>
+                <input type="email" id="email" name="email" value="{{ email }}" required {% if email %}readonly{% endif
+                    %}>
+            </div>
+
+            <div class="form-group">
+                <label for="code">{{ _('Confirmation Code') }}</label>
+                <input type="text" id="code" name="code" required maxlength="6" pattern="\d{6}"
+                    title="{{ _('Please enter exactly 6 digits') }}"
+                    style="letter-spacing: 0.5em; text-align: center; font-size: 1.2rem; font-weight: bold;">
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%;">{{ _('Verify Code') }}</button>
+        </form>
+
+        <div class="text-center mt-4">
+            <span style="color: var(--text-muted); font-size: 0.875rem;">
+                <a href="{{ url_for('auth.login') }}" style="color: var(--text-color); font-weight: 500;">
+                    <i class="fas fa-arrow-left"></i> {{ _('Back to Login') }}
+                </a>
+            </span>
+        </div>
+    </div>
+</div>
+{% endblock %}

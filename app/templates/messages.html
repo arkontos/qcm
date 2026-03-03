@@ -156,7 +156,7 @@
                     style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px;">
                     <option value="">-- {{ _('Select Recipient') }} --</option>
                     {% for contact in contacts %}
-                    <option value="{{ contact.id }}">{{ contact.username }} ({{ contact.role }})</option>
+                    <option value="{{ contact.id }}">{{ contact.email }} ({{ contact.role }})</option>
                     {% endfor %}
                 </select>
             </div>
@@ -213,9 +213,9 @@
 </div>
 
 <script>
-    function replyTo(userId, username) {
+    function replyTo(userId, email) {
         document.getElementById('receiver_id').value = userId;
-        document.getElementById('content').value = `\n\n--- Replying to ${username} ---\n`;
+        document.getElementById('content').value = `\n\n--- Replying to ${email} ---\n`;
         document.getElementById('content').focus();
         const modal = document.getElementById('new-message-modal');
         modal.style.display = 'flex';

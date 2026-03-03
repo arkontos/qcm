@@ -83,7 +83,7 @@
         <tbody>
             {% for stat in teacher_stats %}
             <tr style="border-bottom: 1px solid var(--border-color);">
-                <td style="padding: 1rem 0; font-weight: 500;">{{ stat.username }}</td>
+                <td style="padding: 1rem 0; font-weight: 500;">{{ stat.email }}</td>
                 <td style="padding: 1rem 0;">{{ stat.quiz_count }}</td>
                 <td style="padding: 1rem 0;">{{ stat.submission_count }}</td>
                 <td style="padding: 1rem 0;">
@@ -114,7 +114,7 @@
 <h2 class="mb-3 mt-5">User Management</h2>
 
 <form method="GET" action="" style="margin-bottom: 2rem; display: flex; gap: 1rem;">
-    <input type="text" name="q" placeholder="Search by username or role..." value="{{ search }}"
+    <input type="text" name="q" placeholder="Search by email or role..." value="{{ search }}"
         style="flex: 1; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 8px;">
     <button type="submit" class="btn btn-primary">Search</button>
     {% if search %}
@@ -137,7 +137,7 @@
             {% for user in users %}
             <tr style="border-bottom: 1px solid var(--border-color);">
                 <td style="padding: 1rem 0;">{{ user.id }}</td>
-                <td style="padding: 1rem 0;">{{ user.username }}</td>
+                <td style="padding: 1rem 0;">{{ user.email }}</td>
                 <td style="padding: 1rem 0; text-transform: capitalize;">{{ user.role }}</td>
                 <td style="padding: 1rem 0;">
                     {% if user.is_active %}
@@ -157,7 +157,7 @@
                     <form id="delete-user-{{ user.id }}" action="{{ url_for('admin.delete_user', id=user.id) }}"
                         method="POST">
                         <button type="button" class="btn btn-secondary btn-sm" style="color: var(--error);"
-                            onclick="confirmDeleteUser('{{ user.id }}', '{{ user.username }}')">Delete</button>
+                            onclick="confirmDeleteUser('{{ user.id }}', '{{ user.email }}')">Delete</button>
                     </form>
                 </td>
             </tr>

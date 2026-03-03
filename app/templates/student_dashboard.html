@@ -45,7 +45,7 @@
         <p style="color: var(--text-muted); flex: 1;">{{ _('Enter a 4-digit game PIN to join.') }}</p>
         <form action="{{ url_for('student.join_live') }}" method="POST" class="mobile-stack"
             style="display: flex; gap: 0.5rem; margin-top: 1rem;">
-            <input type="hidden" name="name" value="{{ current_user.username }}">
+            <input type="hidden" name="name" value="{{ current_user.email }}">
             <input type="text" name="pin" class="form-control" placeholder="{{ _('PIN') }}"
                 style="flex: 1; font-family: monospace; letter-spacing: 0.2em; font-weight: bold; font-size: 1.25rem; text-align: center;"
                 required autocomplete="off" maxlength="4">
@@ -182,7 +182,7 @@
     <div class="card p-4" style="border-left: 4px solid var(--primary);">
         <h4 style="margin-bottom: 0.5rem; color: var(--text-color); font-size: 1.25rem;">{{ classroom.name }}</h4>
         <div style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.5rem;">
-            {{ _('Teacher:') }} <span style="font-weight: 600;">{{ classroom.teacher.username }}</span>
+            {{ _('Teacher:') }} <span style="font-weight: 600;">{{ classroom.teacher.email }}</span>
         </div>
         <div style="font-size: 0.875rem; color: var(--text-muted);">
             {{ _('Code:') }} <span

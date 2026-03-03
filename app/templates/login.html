@@ -9,8 +9,8 @@
 
         <form action="{{ url_for('auth.login') }}" method="POST">
             <div class="form-group">
-                <label for="username">{{ _('Username') }}</label>
-                <input type="text" id="username" name="username" required>
+                <label for="email">{{ _('Email Address') }}</label>
+                <input type="email" id="email" name="email" required>
             </div>
             <div class="form-group">
                 <label for="password">{{ _('Password') }}</label>

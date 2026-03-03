@@ -7,6 +7,7 @@ from flask_socketio import SocketIO
 from werkzeug.security import generate_password_hash
 from dotenv import load_dotenv
 from config import Config
+from flask_mail import Mail
 
 from sqlalchemy import MetaData
 
@@ -38,6 +39,7 @@ def get_locale():
 
 babel = Babel()
 socketio = SocketIO()
+mail = Mail()
 
 def create_app(config_class=Config):
     app = Flask(__name__)
@@ -48,6 +50,7 @@ def create_app(config_class=Config):
     login_manager.init_app(app)
     babel.init_app(app, locale_selector=get_locale)
     socketio.init_app(app, cors_allowed_origins="*")
+    mail.init_app(app)
 
     @login_manager.user_loader
     def load_user(user_id):
@@ -90,15 +93,16 @@ def create_app(config_class=Config):
 
         # Create default admin user if none exists
         try:
-            if not models.User.query.filter_by(username='admin').first():
+            if not models.User.query.filter_by(email='admin@qcm.com').first():
                 admin_user = models.User(
-                    username='admin',
-                    role='admin'
+                    email='admin@qcm.com',
+                    role='admin',
+                    email_confirmed=True
                 )
                 admin_user.set_password('password')
                 db.session.add(admin_user)
                 db.session.commit()
-                print("Default admin user created: admin / password")
+                print("Default admin user created: admin@qcm.com / password")
         except Exception:
             db.session.rollback()
 

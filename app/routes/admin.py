@@ -28,7 +28,7 @@ def dashboard():
 
     query = User.query.filter(User.id != current_user.id)
     if search:
-        query = query.filter(User.username.ilike(f'%{search}%') | User.role.ilike(f'%{search}%'))
+        query = query.filter(User.email.ilike(f'%{search}%') | User.role.ilike(f'%{search}%'))
         
     pagination = query.order_by(User.id.desc()).paginate(page=page, per_page=12, error_out=False)
     users = pagination.items
@@ -59,7 +59,7 @@ def dashboard():
             
         teacher_stats.append({
             'id': teacher.id,
-            'username': teacher.username,
+            'email': teacher.email,
             'is_active': teacher.is_active,
             'quiz_count': quiz_count,
             'submission_count': submission_count
@@ -77,16 +77,16 @@ def dashboard():
 @admin_required
 def add_user():
     if request.method == 'POST':
-        username = request.form.get('username')
+        email = request.form.get('email')
         password = request.form.get('password')
         is_active = request.form.get('is_active') == 'true'
         role = request.form.get('role', 'teacher')
         
-        if User.query.filter_by(username=username).first():
-            flash('Username already exists.', 'error')
+        if User.query.filter_by(email=email).first():
+            flash('Email already exists.', 'error')
             return redirect(url_for('admin.add_user'))
             
-        new_user = User(username=username, role=role, is_active=is_active)
+        new_user = User(email=email, role=role, is_active=is_active, email_confirmed=True)
         new_user.set_password(password)
         db.session.add(new_user)
         db.session.commit()
@@ -105,17 +105,17 @@ def edit_user(id):
         return redirect(url_for('admin.dashboard'))
         
     if request.method == 'POST':
-        username = request.form.get('username')
+        email = request.form.get('email')
         password = request.form.get('password')
         is_active = request.form.get('is_active') == 'true'
         role = request.form.get('role', user.role)
         
-        existing = User.query.filter_by(username=username).first()
+        existing = User.query.filter_by(email=email).first()
         if existing and existing.id != user.id:
-            flash('Username already taken.', 'error')
+            flash('Email already taken.', 'error')
             return redirect(url_for('admin.edit_user', id=id))
             
-        user.username = username
+        user.email = email
         user.is_active = is_active
         user.role = role
         if password: # only update if provided

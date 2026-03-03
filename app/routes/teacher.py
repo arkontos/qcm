@@ -799,7 +799,7 @@ def remove_student_from_class(classroom_id, user_id):
     if student in classroom.students:
         classroom.students.remove(student)
         db.session.commit()
-        flash(f'Student {student.username} removed from classroom.', 'success')
+        flash(f'Student {student.email} removed from classroom.', 'success')
             
     return redirect(url_for('teacher.view_classroom', classroom_id=classroom_id))
 
